@@ -498,8 +498,8 @@ const Navbar = () => {
             <CartDrawer />
             
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              <Sheet>
+                <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" data-testid="user-menu-btn">
                     <Avatar className="w-8 h-8">
                       <AvatarImage src={user.picture} />
@@ -508,36 +508,95 @@ const Navbar = () => {
                       </AvatarFallback>
                     </Avatar>
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="px-2 py-1.5">
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                </SheetTrigger>
+                <SheetContent className="w-full sm:w-full sm:max-w-full" side="right">
+                  <SheetHeader className="border-b pb-6">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-16 h-16">
+                        <AvatarImage src={user.picture} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                          {user.name?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <SheetTitle className="text-2xl font-bold text-left">{user.name}</SheetTitle>
+                        <p className="text-muted-foreground">{user.email}</p>
+                      </div>
+                    </div>
+                  </SheetHeader>
+                  <div className="py-8 max-w-2xl mx-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {user.role === 'admin' && (
+                        <SheetTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className="h-auto py-6 px-6 rounded-2xl flex flex-col items-center gap-3 hover:bg-primary hover:text-primary-foreground transition-all group"
+                            onClick={() => navigate('/admin')}
+                            data-testid="admin-menu-item"
+                          >
+                            <div className="w-14 h-14 bg-muted rounded-xl flex items-center justify-center group-hover:bg-primary-foreground/20">
+                              <Settings className="w-7 h-7" />
+                            </div>
+                            <span className="font-semibold">Panel Admin</span>
+                          </Button>
+                        </SheetTrigger>
+                      )}
+                      <SheetTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="h-auto py-6 px-6 rounded-2xl flex flex-col items-center gap-3 hover:bg-primary hover:text-primary-foreground transition-all group"
+                          onClick={() => navigate('/perfil')}
+                          data-testid="profile-menu-item"
+                        >
+                          <div className="w-14 h-14 bg-muted rounded-xl flex items-center justify-center group-hover:bg-primary-foreground/20">
+                            <User className="w-7 h-7" />
+                          </div>
+                          <span className="font-semibold">Mi Perfil</span>
+                        </Button>
+                      </SheetTrigger>
+                      <SheetTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="h-auto py-6 px-6 rounded-2xl flex flex-col items-center gap-3 hover:bg-primary hover:text-primary-foreground transition-all group"
+                          onClick={() => navigate('/pedidos')}
+                          data-testid="orders-menu-item"
+                        >
+                          <div className="w-14 h-14 bg-muted rounded-xl flex items-center justify-center group-hover:bg-primary-foreground/20">
+                            <Package className="w-7 h-7" />
+                          </div>
+                          <span className="font-semibold">Mis Pedidos</span>
+                        </Button>
+                      </SheetTrigger>
+                      <SheetTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="h-auto py-6 px-6 rounded-2xl flex flex-col items-center gap-3 hover:bg-primary hover:text-primary-foreground transition-all group"
+                          onClick={() => navigate('/favoritos')}
+                          data-testid="wishlist-menu-item"
+                        >
+                          <div className="w-14 h-14 bg-muted rounded-xl flex items-center justify-center group-hover:bg-primary-foreground/20">
+                            <Heart className="w-7 h-7" />
+                          </div>
+                          <span className="font-semibold">Favoritos</span>
+                        </Button>
+                      </SheetTrigger>
+                    </div>
+                    <div className="mt-8 pt-8 border-t">
+                      <SheetTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          className="w-full h-auto py-4 rounded-2xl text-destructive hover:bg-destructive/10 flex items-center justify-center gap-3"
+                          onClick={handleLogout}
+                          data-testid="logout-menu-item"
+                        >
+                          <LogOut className="w-5 h-5" />
+                          <span className="font-semibold">Cerrar Sesión</span>
+                        </Button>
+                      </SheetTrigger>
+                    </div>
                   </div>
-                  <DropdownMenuSeparator />
-                  {user.role === 'admin' && (
-                    <>
-                      <DropdownMenuItem onClick={() => navigate('/admin')} data-testid="admin-menu-item">
-                        <Settings className="w-4 h-4 mr-2" /> Panel Admin
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <DropdownMenuItem onClick={() => navigate('/perfil')} data-testid="profile-menu-item">
-                    <User className="w-4 h-4 mr-2" /> Mi Perfil
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/pedidos')} data-testid="orders-menu-item">
-                    <Package className="w-4 h-4 mr-2" /> Mis Pedidos
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/favoritos')} data-testid="wishlist-menu-item">
-                    <Heart className="w-4 h-4 mr-2" /> Favoritos
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive" data-testid="logout-menu-item">
-                    <LogOut className="w-4 h-4 mr-2" /> Cerrar Sesión
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </SheetContent>
+              </Sheet>
             ) : (
               <Button 
                 variant="ghost" 
