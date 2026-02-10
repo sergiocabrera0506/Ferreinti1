@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { 
-  Plus, Search, Edit, Trash2, Loader2, Package, X, Save, ImagePlus, Upload, FileSpreadsheet, Check
+  Plus, Search, Edit, Trash2, Loader2, Package, X, Save, ImagePlus, Upload, FileSpreadsheet, Check,
+  LayoutGrid, LayoutList, Eye
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -54,6 +55,7 @@ export const AdminProducts = () => {
   const [saving, setSaving] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [newFeature, setNewFeature] = useState('');
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
   
   // CSV Import states
   const [importDialogOpen, setImportDialogOpen] = useState(false);
