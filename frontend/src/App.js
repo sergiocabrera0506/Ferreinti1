@@ -839,18 +839,21 @@ const HomePage = () => {
       </section>
 
       {/* Offers */}
-      <section className="py-12 md:py-16 bg-muted relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-2 caution-tape" />
+      <section className="py-12 md:py-20 bg-gradient-to-b from-muted to-background relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-orange-500 to-primary" />
         <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-primary-foreground" />
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30">
+                <TrendingUp className="w-6 h-6 text-primary-foreground" />
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold">Ofertas Especiales</h2>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold">Ofertas Especiales</h2>
+                <p className="text-muted-foreground text-sm">Los mejores descuentos</p>
+              </div>
             </div>
-            <Link to="/ofertas" className="text-primary font-medium flex items-center gap-1 hover:underline" data-testid="see-all-offers">
-              Ver todas <ChevronRight className="w-4 h-4" />
+            <Link to="/ofertas" className="text-primary font-semibold flex items-center gap-1 hover:gap-2 transition-all group" data-testid="see-all-offers">
+              Ver todas <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -862,17 +865,20 @@ const HomePage = () => {
       </section>
 
       {/* Bestsellers */}
-      <section className="py-12 md:py-16 bg-background">
+      <section className="py-12 md:py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-accent rounded-sm flex items-center justify-center">
-                <Star className="w-5 h-5 text-accent-foreground" />
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <Star className="w-6 h-6 text-white" />
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold">Los Más Vendidos</h2>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold">Los Más Vendidos</h2>
+                <p className="text-muted-foreground text-sm">Favoritos de nuestros clientes</p>
+              </div>
             </div>
-            <Link to="/mas-vendidos" className="text-primary font-medium flex items-center gap-1 hover:underline" data-testid="see-all-bestsellers">
-              Ver todos <ChevronRight className="w-4 h-4" />
+            <Link to="/mas-vendidos" className="text-primary font-semibold flex items-center gap-1 hover:gap-2 transition-all group" data-testid="see-all-bestsellers">
+              Ver todos <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -884,17 +890,20 @@ const HomePage = () => {
       </section>
 
       {/* New Products */}
-      <section className="py-12 md:py-16 bg-muted">
+      <section className="py-12 md:py-20 bg-gradient-to-b from-background to-muted">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-500 rounded-sm flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold">Lo Nuevo</h2>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold">Lo Nuevo</h2>
+                <p className="text-muted-foreground text-sm">Recién llegados</p>
+              </div>
             </div>
-            <Link to="/nuevos" className="text-primary font-medium flex items-center gap-1 hover:underline" data-testid="see-all-new">
-              Ver todos <ChevronRight className="w-4 h-4" />
+            <Link to="/nuevos" className="text-primary font-semibold flex items-center gap-1 hover:gap-2 transition-all group" data-testid="see-all-new">
+              Ver todos <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
