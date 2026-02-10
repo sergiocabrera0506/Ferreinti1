@@ -994,6 +994,9 @@ const ProductPage = () => {
   const inWishlist = product ? isInWishlist(product.product_id) : false;
 
   useEffect(() => {
+    // Scroll to top when product changes
+    window.scrollTo(0, 0);
+    
     const fetchData = async () => {
       setLoading(true);
       try {
