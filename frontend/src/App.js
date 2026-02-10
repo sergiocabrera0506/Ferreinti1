@@ -468,7 +468,7 @@ const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-50 bg-secondary text-secondary-foreground shadow-xl backdrop-blur-lg bg-opacity-95">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
+      <div className="w-full px-4 md:px-8 lg:px-12">
         {/* Top bar */}
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center gap-3 group" data-testid="logo-link">
@@ -479,7 +479,7 @@ const Navbar = () => {
           </Link>
 
           {/* Search - Desktop */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-8">
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl mx-8">
             <div className="relative w-full group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
               <Input 
