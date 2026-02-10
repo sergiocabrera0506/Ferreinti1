@@ -1586,6 +1586,7 @@ const SearchPage = () => {
   const query = searchParams.get('q') || '';
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('grid');
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -1614,8 +1615,13 @@ const SearchPage = () => {
   return (
     <main className="min-h-screen bg-background" data-testid="search-page">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Resultados de búsqueda</h1>
-        <p className="text-muted-foreground mb-8">"{query}" - {products.length} productos encontrados</p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Resultados de búsqueda</h1>
+            <p className="text-muted-foreground">"{query}" - {products.length} productos encontrados</p>
+          </div>
+          {products.length > 0 && <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />}
+        </div>
         
         {products.length === 0 ? (
           <div className="text-center py-16">
@@ -1623,10 +1629,16 @@ const SearchPage = () => {
             <p className="text-muted-foreground mb-4">No se encontraron productos</p>
             <Button asChild variant="outline"><Link to="/">Volver al inicio</Link></Button>
           </div>
-        ) : (
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {products.map((product) => (
               <ProductCard key={product.product_id} product={product} onQuickAdd={addToCart} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {products.map((product) => (
+              <ProductListItem key={product.product_id} product={product} onQuickAdd={addToCart} />
             ))}
           </div>
         )}
