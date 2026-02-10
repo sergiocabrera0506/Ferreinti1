@@ -1315,7 +1315,7 @@ const ProductPage = () => {
 
         {/* Related Products */}
         {related.length > 0 && (
-          <section className="mt-12 pt-8 border-t">
+          <section className="mt-12 pt-8 border-t pb-24 sm:pb-0">
             <h2 className="text-2xl font-bold mb-6">Productos Relacionados</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {related.slice(0, 4).map((prod) => (
@@ -1325,6 +1325,27 @@ const ProductPage = () => {
           </section>
         )}
       </div>
+      
+      {/* Mobile Fixed Bottom Buttons */}
+      {product && (
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-3 z-50 flex gap-2">
+          <Button 
+            onClick={handleAddToCart}
+            variant="outline"
+            className="flex-1 rounded-sm font-bold uppercase border-2 border-secondary h-12"
+            data-testid="mobile-add-to-cart-btn"
+          >
+            <ShoppingCart className="w-4 h-4 mr-1" /> Carrito
+          </Button>
+          <Button 
+            onClick={handleBuyNow}
+            className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm font-bold uppercase h-12"
+            data-testid="mobile-buy-now-btn"
+          >
+            Comprar Ahora
+          </Button>
+        </div>
+      )}
     </main>
   );
 };
