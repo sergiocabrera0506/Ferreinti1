@@ -874,45 +874,50 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="py-12 md:py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between mb-10">
+      {/* Categories Carousel */}
+      <section className="py-10 md:py-16 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-6 px-4 md:px-8">
             <h2 className="text-2xl md:text-3xl font-bold">Categorías</h2>
             <Link to="/categorias" className="text-primary font-medium flex items-center gap-1 hover:gap-2 transition-all">
               Ver todas <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
-            {categories.map((cat) => (
-              <Link 
-                key={cat.category_id}
-                to={`/categoria/${cat.slug}`}
-                className="group"
-                data-testid={`category-card-${cat.slug}`}
-              >
-                <Card className="overflow-hidden rounded-2xl border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className="aspect-square relative overflow-hidden">
-                    <img 
-                      src={cat.image} 
-                      alt={cat.name}
-                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
-                          <CategoryIcon icon={cat.icon} className="w-4 h-4 text-primary-foreground" />
+          <div className="relative">
+            <div className="overflow-x-auto scrollbar-hide pb-4 -mb-4">
+              <div className="flex gap-4 px-4 md:px-8" style={{ width: 'max-content' }}>
+                {categories.map((cat) => (
+                  <Link 
+                    key={cat.category_id}
+                    to={`/categoria/${cat.slug}`}
+                    className="group flex-shrink-0"
+                    data-testid={`category-card-${cat.slug}`}
+                  >
+                    <Card className="w-36 md:w-44 overflow-hidden rounded-2xl border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                      <div className="aspect-square relative overflow-hidden">
+                        <img 
+                          src={cat.image} 
+                          alt={cat.name}
+                          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
+                            <CategoryIcon icon={cat.icon} className="w-4 h-4 text-primary-foreground" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                  <CardContent className="p-3">
-                    <h3 className="font-semibold text-sm">{cat.name}</h3>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                      <CardContent className="p-3">
+                        <h3 className="font-semibold text-sm line-clamp-1">{cat.name}</h3>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+            {/* Gradient fade indicators */}
+            <div className="absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none hidden md:block" />
+            <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none hidden md:block" />
           </div>
         </div>
       </section>
