@@ -1186,7 +1186,8 @@ const ProductPage = () => {
                 <span className="text-sm text-muted-foreground">({product.stock} disponibles)</span>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              {/* Desktop buttons */}
+              <div className="hidden sm:flex flex-row gap-3">
                 <Button 
                   onClick={handleAddToCart}
                   variant="outline"
