@@ -198,6 +198,43 @@ tail -n 50 /var/log/supervisor/frontend.err.log
 
 ---
 
+## IMPORTAR PRODUCTOS MASIVAMENTE (CSV)
+
+### Cómo importar desde CSV:
+1. Ve a `/admin/productos`
+2. Clic en "Importar CSV"
+3. Selecciona tu archivo CSV
+4. Revisa la vista previa de productos
+5. Clic en "Importar X Productos"
+
+### Formato del CSV:
+Tu archivo CSV debe tener columnas con estos nombres (no importa mayúsculas):
+
+| Columna | Descripción | Requerido |
+|---------|-------------|-----------|
+| `name` o `nombre` o `title` | Nombre del producto | ✅ Sí |
+| `description` o `descripcion` o `body` | Descripción | No |
+| `price` o `precio` | Precio (número) | No |
+| `sku` o `codigo` o `handle` | Código único | No (se genera) |
+| `stock` o `cantidad` o `inventory` | Cantidad disponible | No (default: 10) |
+| `image` o `imagen` o `src` | URL de la imagen | No |
+| `category` o `categoria` o `type` | Nombre de categoría | No |
+
+### Ejemplo de CSV:
+```csv
+nombre,descripcion,precio,sku,stock,imagen
+Martillo Stanley,Martillo profesional 500g,25.99,MART-001,50,https://ejemplo.com/martillo.jpg
+Taladro Bosch,Taladro inalámbrico 20V,89.99,TALA-001,20,https://ejemplo.com/taladro.jpg
+```
+
+### Notas importantes:
+- Los productos con SKU duplicado se omiten automáticamente
+- Si no especificas categoría, se asigna la primera disponible
+- Los productos importados se marcan como "Nuevo" automáticamente
+- Puedes editar precios y detalles después de importar
+
+---
+
 ## PRÓXIMOS PASOS RECOMENDADOS
 
 1. **Cambiar credenciales admin** - Crea un usuario con tu email real
