@@ -45,7 +45,7 @@ Tienda en línea Ferre Inti de ferretería. El usuario quiere:
 - [x] Gestión de pedidos (cambiar estados)
 - [x] Gestión de usuarios (asignar admin)
 - [x] Configuración de envíos por zonas
-- [x] Importación masiva de productos desde CSV
+- [x] Importación masiva de productos desde CSV (con vista previa)
 
 ### Mejoras UI/UX (Feb 10, 2026)
 - [x] Ojo para ver/ocultar contraseña en login
