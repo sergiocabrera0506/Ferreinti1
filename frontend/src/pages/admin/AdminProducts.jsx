@@ -430,7 +430,7 @@ export const AdminProducts = () => {
       {/* Products Grid View */}
       {viewMode === 'grid' && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <Card key={product.product_id} className="rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-square relative bg-muted">
                 <img
