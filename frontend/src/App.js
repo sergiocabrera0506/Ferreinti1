@@ -1120,6 +1120,7 @@ const CategoryPage = () => {
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('grid');
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -1178,16 +1179,25 @@ const CategoryPage = () => {
 
       {/* Products */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-        <p className="text-muted-foreground mb-6">{products.length} productos encontrados</p>
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-muted-foreground">{products.length} productos encontrados</p>
+          <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
+        </div>
         {products.length === 0 ? (
           <div className="text-center py-16">
             <Package className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">No hay productos en esta categoría</p>
           </div>
-        ) : (
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {products.map((product) => (
               <ProductCard key={product.product_id} product={product} onQuickAdd={addToCart} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {products.map((product) => (
+              <ProductListItem key={product.product_id} product={product} onQuickAdd={addToCart} />
             ))}
           </div>
         )}
