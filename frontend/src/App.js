@@ -447,12 +447,12 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-secondary text-secondary-foreground shadow-lg">
+    <header className="sticky top-0 z-50 bg-secondary text-secondary-foreground shadow-xl backdrop-blur-lg bg-opacity-95">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         {/* Top bar */}
         <div className="flex items-center justify-between h-16 md:h-20">
-          <Link to="/" className="flex items-center gap-2" data-testid="logo-link">
-            <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center">
+          <Link to="/" className="flex items-center gap-3 group" data-testid="logo-link">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-all group-hover:scale-105">
               <Wrench className="w-6 h-6 text-primary-foreground" />
             </div>
             <span className="text-xl md:text-2xl font-extrabold tracking-tight">FERRE INTI</span>
@@ -460,14 +460,14 @@ const Navbar = () => {
 
           {/* Search - Desktop */}
           <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <div className="relative w-full group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
               <Input 
                 type="search"
                 placeholder="Buscar productos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 h-11 bg-white text-foreground rounded-sm border-0"
+                className="w-full pl-12 pr-4 h-12 bg-white text-foreground rounded-xl border-2 border-transparent focus:border-primary/30 shadow-inner"
                 data-testid="search-input"
               />
             </div>
