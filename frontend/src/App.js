@@ -309,6 +309,120 @@ const ProductCard = ({ product, onQuickAdd }) => {
   );
 };
 
+// Componente para vista de lista
+const ProductListItem = ({ product, onQuickAdd }) => {
+  const navigate = useNavigate();
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const inWishlist = isInWishlist(product.product_id);
+
+  const handleWishlist = (e) => {
+    e.stopPropagation();
+    if (inWishlist) {
+      removeFromWishlist(product.product_id);
+    } else {
+      addToWishlist(product.product_id);
+    }
+  };
+
+  return (
+    <Card 
+      className="group cursor-pointer overflow-hidden border-0 rounded-2xl hover-lift bg-white shadow-sm hover:shadow-xl transition-all duration-300"
+      onClick={() => navigate(`/producto/${product.product_id}`)}
+      data-testid={`product-list-item-${product.product_id}`}
+    >
+      <div className="flex flex-col sm:flex-row">
+        {/* Imagen */}
+        <div className="relative w-full sm:w-48 md:w-56 h-48 sm:h-auto flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+          <img 
+            src={product.images?.[0] || 'https://via.placeholder.com/400'} 
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+          />
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+            {product.is_offer && <Badge className="badge-offer text-xs font-bold px-2.5 py-1 rounded-full">OFERTA</Badge>}
+            {product.is_new && <Badge className="badge-new text-xs font-bold px-2.5 py-1 rounded-full">NUEVO</Badge>}
+            {product.is_bestseller && <Badge className="badge-bestseller text-xs font-bold px-2.5 py-1 rounded-full">TOP</Badge>}
+          </div>
+        </div>
+        
+        {/* Contenido */}
+        <CardContent className="flex-1 p-4 sm:p-5 flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1 mono">{product.sku}</p>
+                <h3 className="font-semibold text-base sm:text-lg line-clamp-2 mb-2 normal-case leading-snug" style={{ fontFamily: 'Manrope' }}>{product.name}</h3>
+              </div>
+              <button 
+                onClick={handleWishlist}
+                className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 hover:scale-110 transition-all duration-200"
+                data-testid={`list-wishlist-btn-${product.product_id}`}
+              >
+                <Heart className={`w-4 h-4 transition-colors ${inWishlist ? 'fill-red-500 text-red-500' : 'text-gray-500 hover:text-red-400'}`} />
+              </button>
+            </div>
+            
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-3 hidden sm:block">{product.description}</p>
+            
+            <div className="flex items-center gap-1.5 mb-3">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(product.rating || 0) ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}`} />
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground">({product.review_count || 0})</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between gap-4 mt-auto">
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">${product.price?.toFixed(2)}</span>
+              {product.original_price && (
+                <span className="text-sm text-muted-foreground line-through">${product.original_price?.toFixed(2)}</span>
+              )}
+            </div>
+            {onQuickAdd && (
+              <Button 
+                onClick={(e) => { e.stopPropagation(); onQuickAdd(product.product_id); }}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold uppercase text-xs px-4 py-2 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
+                data-testid={`list-quick-add-${product.product_id}`}
+              >
+                <Plus className="w-4 h-4 mr-1" /> Añadir
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </div>
+    </Card>
+  );
+};
+
+// Componente para toggle de vista
+const ViewToggle = ({ viewMode, setViewMode }) => {
+  return (
+    <div className="flex items-center gap-1 bg-muted rounded-xl p-1" data-testid="view-toggle">
+      <Button
+        variant={viewMode === 'grid' ? 'default' : 'ghost'}
+        size="sm"
+        className={`rounded-lg px-3 py-1.5 ${viewMode === 'grid' ? 'bg-primary text-primary-foreground shadow-md' : ''}`}
+        onClick={() => setViewMode('grid')}
+        data-testid="view-toggle-grid"
+      >
+        <Grid3X3 className="w-4 h-4" />
+      </Button>
+      <Button
+        variant={viewMode === 'list' ? 'default' : 'ghost'}
+        size="sm"
+        className={`rounded-lg px-3 py-1.5 ${viewMode === 'list' ? 'bg-primary text-primary-foreground shadow-md' : ''}`}
+        onClick={() => setViewMode('list')}
+        data-testid="view-toggle-list"
+      >
+        <List className="w-4 h-4" />
+      </Button>
+    </div>
+  );
+};
+
 const CartDrawer = () => {
   const { cart, updateQuantity, removeFromCart } = useCart();
   const { user } = useAuth();
