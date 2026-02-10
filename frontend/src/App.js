@@ -1500,11 +1500,11 @@ const AuthPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-muted flex items-center justify-center p-4" data-testid="auth-page">
-      <Card className="w-full max-w-md rounded-sm">
+    <main className="min-h-screen bg-gradient-to-br from-muted via-background to-muted flex items-center justify-center p-4" data-testid="auth-page">
+      <Card className="w-full max-w-md rounded-2xl shadow-xl border-0">
         <CardContent className="p-6 md:p-8">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary rounded-sm flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
               <Wrench className="w-8 h-8 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-bold">FERRE INTI</h1>
@@ -1514,9 +1514,9 @@ const AuthPage = () => {
           </div>
 
           <Tabs value={mode} onValueChange={setMode}>
-            <TabsList className="grid grid-cols-2 mb-6">
-              <TabsTrigger value="login" data-testid="login-tab">Iniciar Sesión</TabsTrigger>
-              <TabsTrigger value="register" data-testid="register-tab">Registrarse</TabsTrigger>
+            <TabsList className="grid grid-cols-2 mb-6 rounded-xl p-1 bg-muted">
+              <TabsTrigger value="login" className="rounded-lg data-[state=active]:shadow-sm" data-testid="login-tab">Iniciar Sesión</TabsTrigger>
+              <TabsTrigger value="register" className="rounded-lg data-[state=active]:shadow-sm" data-testid="register-tab">Registrarse</TabsTrigger>
             </TabsList>
 
             <form onSubmit={handleSubmit} className="space-y-4">
