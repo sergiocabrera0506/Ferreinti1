@@ -14,6 +14,7 @@ Tienda en línea Ferre Inti de ferretería. El usuario quiere:
 - Autenticación: JWT + Google OAuth (Emergent Auth)
 - Pagos: Stripe Checkout integrado
 - Envíos: Cálculo por distancia con fórmula configurable
+- Importación masiva: Endpoint `/api/admin/import-products`
 
 ### Frontend (React + Tailwind + Shadcn)
 - `/app/frontend/src/App.js`: Tienda completa
@@ -28,14 +29,14 @@ Tienda en línea Ferre Inti de ferretería. El usuario quiere:
 
 ### Tienda Cliente
 - [x] Homepage con banner, categorías, ofertas, más vendidos, nuevos
-- [x] Navegación por categorías
+- [x] Navegación por categorías (9 categorías activas)
 - [x] Detalle de producto con galería, reviews, relacionados
 - [x] Carrito y checkout con Stripe
 - [x] Lista de deseos
 - [x] Buscador de productos
 - [x] Autenticación dual (JWT + Google)
 - [x] Perfil y pedidos del usuario
-- [x] 15 productos de ejemplo en 6 categorías
+- [x] 36 productos (15 originales + 21 importados del CSV)
 
 ### Panel Admin
 - [x] Dashboard con estadísticas
@@ -44,25 +45,39 @@ Tienda en línea Ferre Inti de ferretería. El usuario quiere:
 - [x] Gestión de pedidos (cambiar estados)
 - [x] Gestión de usuarios (asignar admin)
 - [x] Configuración de envíos por zonas
+- [x] Importación masiva de productos desde CSV
+
+### Mejoras UI/UX (Feb 10, 2026)
+- [x] Ojo para ver/ocultar contraseña en login
+- [x] Botones comprar/carrito fijos en móvil
+- [x] Sidebar admin sticky al hacer scroll
+- [x] Categorías en footer limitadas con scroll
+- [x] Scroll to top al abrir producto
+- [x] Eliminada marca "Made with Emergent"
 
 ### Credenciales Admin
 - Email: admin@ferreinti.com
 - Password: admin123
 
+### Nuevas Categorías Agregadas
+- Adhesivos y Pegamentos
+- Fontanería y Grifería  
+- Hogar y Limpieza
+
 ## Backlog Priorizado
 
 ### P1 (Importante)
+- [ ] Agregar precios a productos con precio $0
 - [ ] Mercado Pago (cuando se proporcionen keys)
 - [ ] Geocoding automático (Google Maps API)
-- [ ] Notificaciones por email
 
 ### P2 (Mejoras)
 - [ ] Cupones de descuento
+- [ ] Notificaciones por email
 - [ ] Chat de soporte
-- [ ] Reportes avanzados
 
 ## Tareas Siguientes
-1. Usuario debe agregar sus productos reales reemplazando los de ejemplo
+1. Agregar precios reales a los 21 productos importados (actualmente $0)
 2. Configurar Stripe con clave de producción
 3. Agregar URLs reales de redes sociales
 4. Configurar ubicación exacta de la tienda
