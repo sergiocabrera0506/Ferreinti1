@@ -1455,6 +1455,7 @@ const AuthPage = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login, register, loginWithGoogle, user } = useAuth();
   const navigate = useNavigate();
 
