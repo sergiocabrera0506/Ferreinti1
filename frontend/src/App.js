@@ -1572,7 +1572,7 @@ const AuthPage = () => {
               </div>
               <Button 
                 type="submit" 
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm font-bold uppercase"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold uppercase py-3 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
                 disabled={loading}
                 data-testid="auth-submit-btn"
               >
@@ -1584,14 +1584,14 @@ const AuthPage = () => {
 
           <div className="relative my-6">
             <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs text-muted-foreground">
               o continúa con
             </span>
           </div>
 
           <Button 
             variant="outline" 
-            className="w-full rounded-sm"
+            className="w-full rounded-xl py-3 border-2 hover:bg-muted transition-all"
             onClick={loginWithGoogle}
             data-testid="google-login-btn"
           >
