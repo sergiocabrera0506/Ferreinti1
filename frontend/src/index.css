@@ -278,3 +278,13 @@ input:focus, select:focus, textarea:focus {
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
