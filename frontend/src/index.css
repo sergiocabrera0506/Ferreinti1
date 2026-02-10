@@ -25,7 +25,7 @@
         --border: 214 32% 91%;
         --input: 214 32% 91%;
         --ring: 38 92% 50%;
-        --radius: 0.25rem;
+        --radius: 0.75rem;
         --success: 142 76% 36%;
         --warning: 38 92% 50%;
         --info: 217 91% 60%;
@@ -66,6 +66,7 @@ code, .mono {
 
 ::-webkit-scrollbar-track {
     background: hsl(var(--muted));
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -90,19 +91,19 @@ code, .mono {
 
 /* Animation classes */
 .hover-lift {
-    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease-out;
 }
 
 .hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
 }
 
 /* Product card quick add */
 .product-card .quick-add {
     opacity: 0;
-    transform: translateY(8px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .product-card:hover .quick-add {
@@ -110,20 +111,23 @@ code, .mono {
     transform: translateY(0);
 }
 
-/* Badge styles */
+/* Badge styles with glow */
 .badge-offer {
     background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
     color: #0F172A;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
 }
 
 .badge-new {
     background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
     color: white;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
 }
 
 .badge-bestseller {
     background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
     color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
 }
 
 /* Thin scrollbar for footer categories */
@@ -146,9 +150,131 @@ code, .mono {
 /* Ensure mobile viewport fits properly */
 html {
     height: -webkit-fill-available;
+    scroll-behavior: smooth;
 }
 
 body {
     min-height: 100vh;
     min-height: -webkit-fill-available;
+}
+
+/* Smooth card styles */
+.card-smooth {
+    @apply rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300;
+}
+
+/* Glass effect */
+.glass {
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* Gradient text */
+.gradient-text {
+    background: linear-gradient(135deg, #F59E0B 0%, #EA580C 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Button styles */
+.btn-primary {
+    @apply bg-primary text-primary-foreground rounded-xl font-semibold;
+    @apply hover:shadow-lg hover:shadow-primary/30 transition-all duration-300;
+    @apply active:scale-95;
+}
+
+.btn-secondary {
+    @apply bg-secondary text-secondary-foreground rounded-xl font-semibold;
+    @apply hover:bg-secondary/90 transition-all duration-300;
+    @apply active:scale-95;
+}
+
+/* Input styles */
+input, select, textarea {
+    @apply rounded-xl transition-all duration-200;
+}
+
+input:focus, select:focus, textarea:focus {
+    @apply ring-2 ring-primary/20 border-primary;
+}
+
+/* Image hover zoom */
+.img-zoom {
+    @apply overflow-hidden;
+}
+
+.img-zoom img {
+    @apply transition-transform duration-500 ease-out;
+}
+
+.img-zoom:hover img {
+    @apply scale-110;
+}
+
+/* Fade in animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Stagger children animation */
+.stagger-children > * {
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+
+/* Pulse glow animation for CTAs */
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 20px 4px rgba(245, 158, 11, 0.2);
+    }
+}
+
+.pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Category card hover */
+.category-card {
+    @apply relative overflow-hidden rounded-2xl;
+}
+
+.category-card::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent;
+    @apply transition-opacity duration-300;
+}
+
+.category-card:hover::after {
+    @apply from-black/80 via-black/30;
+}
+
+/* Price styling */
+.price-tag {
+    @apply font-bold text-xl;
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, #EA580C 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
