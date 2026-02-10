@@ -253,33 +253,33 @@ const ProductCard = ({ product, onQuickAdd }) => {
 
   return (
     <Card 
-      className="product-card group cursor-pointer overflow-hidden border border-border rounded-sm hover-lift bg-white"
+      className="product-card group cursor-pointer overflow-hidden border-0 rounded-2xl hover-lift bg-white shadow-sm hover:shadow-xl transition-all duration-300"
       onClick={() => navigate(`/producto/${product.product_id}`)}
       data-testid={`product-card-${product.product_id}`}
     >
-      <div className="relative aspect-square overflow-hidden bg-muted">
+      <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-t-2xl">
         <img 
           src={product.images?.[0] || 'https://via.placeholder.com/400'} 
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
         />
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {product.is_offer && <Badge className="badge-offer text-xs font-bold">OFERTA</Badge>}
-          {product.is_new && <Badge className="badge-new text-xs font-bold">NUEVO</Badge>}
-          {product.is_bestseller && <Badge className="badge-bestseller text-xs font-bold">TOP</Badge>}
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+          {product.is_offer && <Badge className="badge-offer text-xs font-bold px-2.5 py-1 rounded-full">OFERTA</Badge>}
+          {product.is_new && <Badge className="badge-new text-xs font-bold px-2.5 py-1 rounded-full">NUEVO</Badge>}
+          {product.is_bestseller && <Badge className="badge-bestseller text-xs font-bold px-2.5 py-1 rounded-full">TOP</Badge>}
         </div>
         <button 
           onClick={handleWishlist}
-          className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+          className="absolute top-3 right-3 p-2.5 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white hover:scale-110 transition-all duration-200 shadow-sm"
           data-testid={`wishlist-btn-${product.product_id}`}
         >
-          <Heart className={`w-4 h-4 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+          <Heart className={`w-4 h-4 transition-colors ${inWishlist ? 'fill-red-500 text-red-500' : 'text-gray-500 hover:text-red-400'}`} />
         </button>
         {onQuickAdd && (
-          <div className="quick-add absolute bottom-2 left-2 right-2">
+          <div className="quick-add absolute bottom-3 left-3 right-3">
             <Button 
               onClick={(e) => { e.stopPropagation(); onQuickAdd(product.product_id); }}
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm font-bold uppercase text-xs"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold uppercase text-xs py-2.5 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all"
               data-testid={`quick-add-${product.product_id}`}
             >
               <Plus className="w-4 h-4 mr-1" /> Añadir
@@ -288,15 +288,18 @@ const ProductCard = ({ product, onQuickAdd }) => {
         )}
       </div>
       <CardContent className="p-4">
-        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1 mono">{product.sku}</p>
-        <h3 className="font-semibold text-sm line-clamp-2 mb-2 normal-case" style={{ fontFamily: 'Manrope' }}>{product.name}</h3>
-        <div className="flex items-center gap-1 mb-2">
-          <Star className="w-3.5 h-3.5 fill-primary text-primary" />
-          <span className="text-xs font-medium">{product.rating?.toFixed(1) || '0.0'}</span>
+        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1.5 mono">{product.sku}</p>
+        <h3 className="font-semibold text-sm line-clamp-2 mb-2 normal-case leading-snug" style={{ fontFamily: 'Manrope' }}>{product.name}</h3>
+        <div className="flex items-center gap-1.5 mb-3">
+          <div className="flex">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(product.rating || 0) ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}`} />
+            ))}
+          </div>
           <span className="text-xs text-muted-foreground">({product.review_count || 0})</span>
         </div>
         <div className="flex items-baseline gap-2">
-          <span className="text-lg font-bold text-secondary">${product.price?.toFixed(2)}</span>
+          <span className="text-xl font-bold bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">${product.price?.toFixed(2)}</span>
           {product.original_price && (
             <span className="text-sm text-muted-foreground line-through">${product.original_price?.toFixed(2)}</span>
           )}
