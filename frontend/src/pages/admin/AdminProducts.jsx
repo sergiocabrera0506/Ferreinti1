@@ -701,6 +701,81 @@ export const AdminProducts = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* CSV Import Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={(open) => { if (!importing) setImportDialogOpen(open); }}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-primary" />
+              Importar Productos desde CSV
+            </DialogTitle>
+          </DialogHeader>
+          
+          {!importing ? (
+            <>
+              <div className="text-sm text-muted-foreground mb-2">
+                Se encontraron <span className="font-bold text-foreground">{csvData.length}</span> productos para importar.
+                Los productos con SKU duplicado serán omitidos.
+              </div>
+              
+              <ScrollArea className="flex-1 -mx-6 px-6 max-h-[50vh]">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted sticky top-0">
+                    <tr>
+                      <th className="text-left p-2 font-medium">Nombre</th>
+                      <th className="text-left p-2 font-medium">SKU</th>
+                      <th className="text-right p-2 font-medium">Precio</th>
+                      <th className="text-right p-2 font-medium">Stock</th>
+                      <th className="text-left p-2 font-medium">Imagen</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {csvData.map((prod, idx) => (
+                      <tr key={idx} className="hover:bg-muted/50">
+                        <td className="p-2 max-w-[200px] truncate">{prod.name}</td>
+                        <td className="p-2 font-mono text-xs">{prod.sku}</td>
+                        <td className="p-2 text-right">${prod.price?.toFixed(2) || '0.00'}</td>
+                        <td className="p-2 text-right">{prod.stock}</td>
+                        <td className="p-2">
+                          {prod.images?.[0] ? (
+                            <img src={prod.images[0]} alt="" className="w-8 h-8 object-cover rounded" />
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </ScrollArea>
+              
+              <DialogFooter className="mt-4">
+                <Button variant="outline" onClick={() => { setImportDialogOpen(false); setCsvData([]); }} className="rounded-sm">
+                  Cancelar
+                </Button>
+                <Button onClick={importProducts} className="bg-primary rounded-sm" data-testid="confirm-import-btn">
+                  <Upload className="w-4 h-4 mr-2" /> Importar {csvData.length} Productos
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <div className="py-12 text-center">
+              <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-lg font-medium">Importando productos...</p>
+              <p className="text-muted-foreground">
+                {importProgress.current} de {importProgress.total}
+              </p>
+              <div className="w-full bg-muted rounded-full h-2 mt-4 max-w-md mx-auto">
+                <div 
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
