@@ -402,11 +402,93 @@ export const AdminProducts = () => {
                 ))}
               </SelectContent>
             </Select>
+            {/* View Toggle */}
+            <div className="flex gap-1 border rounded-lg p-1">
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setViewMode('list')}
+                data-testid="view-list-btn"
+              >
+                <LayoutList className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setViewMode('grid')}
+                data-testid="view-grid-btn"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Products Table */}
+      {/* Products Grid View */}
+      {viewMode === 'grid' && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {filteredProducts.map((product) => (
+            <Card key={product.product_id} className="rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="aspect-square relative bg-muted">
+                <img
+                  src={product.images?.[0] || 'https://via.placeholder.com/200'}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 left-2 flex flex-col gap-1">
+                  {product.is_offer && <Badge className="bg-orange-500 text-white text-xs">Oferta</Badge>}
+                  {product.is_new && <Badge className="bg-green-500 text-white text-xs">Nuevo</Badge>}
+                  {product.is_bestseller && <Badge className="bg-blue-500 text-white text-xs">Top</Badge>}
+                </div>
+                {product.stock <= 5 && (
+                  <Badge className="absolute top-2 right-2 bg-red-500 text-white text-xs">
+                    Stock: {product.stock}
+                  </Badge>
+                )}
+              </div>
+              <CardContent className="p-3">
+                <p className="text-xs text-muted-foreground font-mono">{product.sku}</p>
+                <h3 className="font-medium text-sm line-clamp-2 mt-1">{product.name}</h3>
+                <div className="flex items-center justify-between mt-2">
+                  <div>
+                    <span className="font-bold text-primary">${product.price?.toFixed(2)}</span>
+                    {product.original_price && (
+                      <span className="text-xs text-muted-foreground line-through ml-1">
+                        ${product.original_price?.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground">Stock: {product.stock}</span>
+                </div>
+                <div className="flex gap-1 mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-8 rounded-lg"
+                    onClick={() => openEditDialog(product)}
+                  >
+                    <Edit className="w-3 h-3 mr-1" /> Editar
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                    onClick={() => confirmDelete(product)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Products Table View */}
+      {viewMode === 'list' && (
       <Card className="rounded-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
