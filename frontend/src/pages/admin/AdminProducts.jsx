@@ -571,7 +571,7 @@ export const AdminProducts = () => {
             </tbody>
           </table>
         </div>
-        {filteredProducts.length === 0 && (
+        {products.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
             <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>No hay productos</p>
@@ -581,7 +581,7 @@ export const AdminProducts = () => {
       )}
 
       {/* Empty state for grid view */}
-      {viewMode === 'grid' && filteredProducts.length === 0 && (
+      {viewMode === 'grid' && products.length === 0 && (
         <Card className="rounded-sm">
           <div className="text-center py-12 text-muted-foreground">
             <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
