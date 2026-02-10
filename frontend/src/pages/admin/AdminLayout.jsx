@@ -41,7 +41,7 @@ export const AdminLayout = ({ user, onLogout }) => {
   return (
     <div className="min-h-screen bg-muted flex">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex lg:flex-col w-64 bg-secondary text-secondary-foreground">
+      <aside className="hidden lg:flex lg:flex-col w-64 bg-secondary text-secondary-foreground sticky top-0 h-screen">
         <div className="p-4 flex items-center gap-2">
           <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center">
             <Wrench className="w-5 h-5 text-primary-foreground" />
