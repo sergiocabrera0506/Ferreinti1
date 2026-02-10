@@ -352,9 +352,25 @@ export const AdminProducts = () => {
           <h1 className="text-2xl font-bold">Productos</h1>
           <p className="text-muted-foreground">{products.length} productos</p>
         </div>
-        <Button onClick={openCreateDialog} className="bg-primary rounded-sm" data-testid="create-product-btn">
-          <Plus className="w-4 h-4 mr-2" /> Nuevo Producto
-        </Button>
+        <div className="flex gap-2">
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleFileUpload}
+              className="hidden"
+              data-testid="csv-file-input"
+            />
+            <Button variant="outline" className="rounded-sm" asChild>
+              <span>
+                <Upload className="w-4 h-4 mr-2" /> Importar CSV
+              </span>
+            </Button>
+          </label>
+          <Button onClick={openCreateDialog} className="bg-primary rounded-sm" data-testid="create-product-btn">
+            <Plus className="w-4 h-4 mr-2" /> Nuevo Producto
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
