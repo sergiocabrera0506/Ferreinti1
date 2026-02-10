@@ -1204,6 +1204,91 @@ async def seed_data():
     
     return {"message": "Datos iniciales creados exitosamente"}
 
+# ==================== IMPORT PRODUCTS FROM CSV ====================
+
+class ImportProductsRequest(BaseModel):
+    clear_existing: bool = False
+
+@api_router.post("/admin/import-products")
+async def import_csv_products(request: ImportProductsRequest, token_data: dict = Depends(verify_token)):
+    """Import products from the predefined CSV data"""
+    if token_data.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Create new categories if needed
+    new_categories = [
+        {"category_id": "cat_adhesivos", "name": "Adhesivos y Pegamentos", "slug": "adhesivos-pegamentos", "image": "https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033443546.png?v=1731231292", "icon": "Droplets"},
+        {"category_id": "cat_fontaneria", "name": "Fontanería y Grifería", "slug": "fontaneria-griferia", "image": "https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_163019219.png?v=1730241021", "icon": "Droplets"},
+        {"category_id": "cat_hogar", "name": "Hogar y Limpieza", "slug": "hogar-limpieza", "image": "https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_031540433-Photoroom.png?v=1731230170", "icon": "HomeIcon"},
+    ]
+    
+    for cat in new_categories:
+        existing = await db.categories.find_one({"category_id": cat["category_id"]})
+        if not existing:
+            await db.categories.insert_one(cat)
+    
+    # CSV Products data (unique products only)
+    csv_products = [
+        {"name": "Montaje Sin Clavos FORTIKONG", "description": "Pega, fija y monta sin clavos, sin taquetes ni tornillos. Aplicador de precisión. Color amarillo claro. Alta resistencia.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033749915.png?v=1731231478"], "stock": 10, "sku": "FORT-001"},
+        {"name": "Pegamento Instantáneo Pegatanke", "description": "Pegamento instantáneo Toke ultra 3g, ideal para adherir materiales como acero, aluminio, hierro, caucho, cobre, madera, estaño, cuero.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033443546.png?v=1731231292"], "stock": 20, "sku": "PEGA-001"},
+        {"name": "Masilla Epóxica PEGATANKE", "description": "Epóxico no permite el paso a la humedad, corrosión o abrasión. Impermeable al agua, gasoil, gasolina, anticongelante, fluidos hidráulicos, aceites, grasas y demás disolventes. Aislante a los fluidos de transmisión y al ácido de las baterías.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033327017.png?v=1731231216"], "stock": 15, "sku": "PEGA-002"},
+        {"name": "Epóxico Transparente FORTIKONG", "description": "Ideal para reparación de madera, porcelana, fibra de vidrio, metales, luces LED, maquinaria, electrónica, automotriz, construcción. Secado rápido. Unión fuerte. Resiste hasta 130kg/cm2. Resistente al agua, ácido, aceite.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033126938.png?v=1731231095"], "stock": 15, "sku": "FORT-002"},
+        {"name": "Pega Acero Gris FORTIKONG", "description": "Ideal para metal, cerámica, plástico, motocicletas, tanques de combustible, parachoques, espejos, radiadores, lámparas, aparatos eléctricos. Latón, metales, cobre, hierro. Resiste hasta 160kg/cm2.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033028825.png?v=1731231037"], "stock": 15, "sku": "FORT-003"},
+        {"name": "Pega Acero FORTIKONG", "description": "Ideal para metal, cerámica, plástico para motocicletas, tanques de combustible, parachoques, espejos, radiadores, lámparas. Latón, metales, cobre, hierro, plástico, cerámica. Resiste hasta 160kg/cm2. Color gris.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_032901788.png?v=1731230951"], "stock": 15, "sku": "FORT-004"},
+        {"name": "Pega Todo FORTIKONG", "description": "Color blanco. 85gr. Temperatura -5 a 50°C. Soporta 100 kg por cm2. Para madera, metales, espejos, mármol, hormigón, galvanizados, plásticos, cemento. Sella áreas de alta vibración. Uso exterior o interior.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_032056142.png?v=1731230464"], "stock": 20, "sku": "FORT-005"},
+        {"name": "Bote Para Basura Con Pedal 20L LION TOOLS", "description": "Acabado satinado. Cuerpo acero inoxidable. Cubeta interior de plástico PP. Cierre lento. 20 litros. 27cm x 44cm x 27cm.", "price": 0, "category_id": "cat_hogar", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_031540433-Photoroom.png?v=1731230170"], "stock": 5, "sku": "LION-001"},
+        {"name": "Bote Para Basura Con Pedal 12L LION TOOLS", "description": "Acabado Satinado. Cuerpo Acero Inoxidable 410. Cubeta Interior De Plástico PP. Cierre Lento. 27cm x 30.5cm x 27cm.", "price": 236.00, "category_id": "cat_hogar", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_025748572.png?v=1731229077"], "stock": 5, "sku": "LION-002"},
+        {"name": "Tarja Escurridor Izquierdo T01R", "description": "Tarja para Cocina. Tamaño: 80x50 cm. Lado: Izquierdo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_204737530.png?v=1730774859"], "stock": 3, "sku": "FIDIC-001"},
+        {"name": "Pack de Baño Completo", "description": "Set completo de accesorios para baño.", "price": 160.00, "category_id": "cat_bano", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_194447072-Photoroom.jpg?v=1730252700"], "stock": 5, "sku": "PACK-001"},
+        {"name": "Tarja Derecha FIDIC T01", "description": "Tarja 80x50. Escurridor Derecho. Calibre 22. Tipo Satín. FIDIC T01.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_161607540.png?v=1730240169"], "stock": 3, "sku": "FIDIC-002"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8511", "description": "Cubierta Metálica. Cuello Metálico. Cuerpo Metálico. 1/4\" Vuelta. Color Cromo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_195159060-Photoroom.jpg?v=1730253130"], "stock": 5, "sku": "FIDIC-003"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8501-1", "description": "Cuello Metálico. Cubierta Metálica. Cuerpo Metálico. Vuelta Completa. Color Cromo.", "price": 150.00, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_163019219.png?v=1730241021"], "stock": 5, "sku": "FIDIC-004"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8501", "description": "Cubierta Metálica. Cuello Metálico. Cuerpo Metálico. Vuelta Completa. Color Cromo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_162825230.png?v=1730240981"], "stock": 5, "sku": "FIDIC-005"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8281", "description": "Manerales Metálico. Cuello Flexible. Cuerpo De Bronce. Cubierta Metálica. Color Cromo. Vuelta Completa. Cuello Largo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_195040767-Photoroom.jpg?v=1730253062"], "stock": 5, "sku": "FIDIC-006"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8258", "description": "Cuello Metálico. Cubierta Metálica. Cuerpo De Bronce. Manerales Metálicos 1/4\" De Vuelta Mezcladora Para Fregadero 8\". Color Cromo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_194926958-Photoroom.jpg?v=1730253007"], "stock": 5, "sku": "FIDIC-007"},
+        {"name": "Mezcladora Para Fregadero A La Pared FIDIC F8255", "description": "Mezcladora Para Fregadero a la Pared. Cuello Metálico. Cubierta Metálica. Cuerpo De Bronce. Vuelta Completa. Color Cromo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_194806936-Photoroom.jpg?v=1730252913"], "stock": 5, "sku": "FIDIC-008"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8245BN", "description": "Cuello Metálico. Cubierta Metálica. Cuerpo De Bronce. Manerales Metálicos 1/4\" De Vuelta. Mezcladora Para Fregadero 8\". Color Satín.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_162011842.png?v=1730240413"], "stock": 5, "sku": "FIDIC-009"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8245", "description": "Cuello Metálico. Cubierta Metálica. Cuerpo De Bronce. Manerales Metálicos 1/4\" De Vuelta. Mezcladora Para Fregadero 8\". Color Cromo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_161838393.png?v=1730240320"], "stock": 5, "sku": "FIDIC-010"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8202BN", "description": "Manerales Metálico. Cuello Metálico. Cuerpo De Bronce. Cubierta Metálica. Color Satín. Cuello Largo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_161607540.png?v=1730240169"], "stock": 5, "sku": "FIDIC-011"},
+    ]
+    
+    imported_count = 0
+    skipped_count = 0
+    
+    for prod_data in csv_products:
+        # Check if product already exists by SKU
+        existing = await db.products.find_one({"sku": prod_data["sku"]})
+        if existing:
+            skipped_count += 1
+            continue
+        
+        product = {
+            "product_id": f"prod_{uuid.uuid4().hex[:8]}",
+            "name": prod_data["name"],
+            "description": prod_data["description"],
+            "price": prod_data["price"],
+            "category_id": prod_data["category_id"],
+            "images": prod_data["images"],
+            "features": [],
+            "stock": prod_data["stock"],
+            "sku": prod_data["sku"],
+            "is_offer": False,
+            "is_bestseller": False,
+            "is_new": True,
+            "rating": 0,
+            "review_count": 0,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.products.insert_one(product)
+        imported_count += 1
+    
+    return {
+        "message": f"Importación completada",
+        "imported": imported_count,
+        "skipped": skipped_count,
+        "total_in_csv": len(csv_products)
+    }
+
 # ==================== MAIN APP ====================
 
 app.include_router(api_router)
