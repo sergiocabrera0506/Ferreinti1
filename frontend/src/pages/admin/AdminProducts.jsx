@@ -476,7 +476,7 @@ export const AdminProducts = () => {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                    onClick={() => confirmDelete(product)}
+                    onClick={() => { setSelectedProduct(product); setDeleteDialogOpen(true); }}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
