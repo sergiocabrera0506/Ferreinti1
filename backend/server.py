@@ -1210,10 +1210,8 @@ class ImportProductsRequest(BaseModel):
     clear_existing: bool = False
 
 @api_router.post("/admin/import-products")
-async def import_csv_products(request: ImportProductsRequest, token_data: dict = Depends(verify_token)):
+async def import_csv_products(request: ImportProductsRequest, user: User = Depends(require_admin)):
     """Import products from the predefined CSV data"""
-    if token_data.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     # Create new categories if needed
     new_categories = [
