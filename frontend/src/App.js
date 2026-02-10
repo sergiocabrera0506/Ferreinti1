@@ -628,8 +628,8 @@ const Footer = () => {
           {/* Categories */}
           <div>
             <h3 className="text-lg font-bold mb-4">Categorías</h3>
-            <ul className="space-y-2">
-              {categories.map((cat) => (
+            <ul className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
+              {categories.slice(0, 6).map((cat) => (
                 <li key={cat.category_id}>
                   <Link 
                     to={`/categoria/${cat.slug}`}
@@ -639,6 +639,11 @@ const Footer = () => {
                   </Link>
                 </li>
               ))}
+              {categories.length > 6 && (
+                <li className="text-xs text-secondary-foreground/50 pt-1">
+                  +{categories.length - 6} más categorías
+                </li>
+              )}
             </ul>
           </div>
 
