@@ -571,13 +571,24 @@ export const AdminProducts = () => {
             </tbody>
           </table>
         </div>
-        {products.length === 0 && (
+        {filteredProducts.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
             <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>No hay productos</p>
           </div>
         )}
       </Card>
+      )}
+
+      {/* Empty state for grid view */}
+      {viewMode === 'grid' && filteredProducts.length === 0 && (
+        <Card className="rounded-sm">
+          <div className="text-center py-12 text-muted-foreground">
+            <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>No hay productos</p>
+          </div>
+        </Card>
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
