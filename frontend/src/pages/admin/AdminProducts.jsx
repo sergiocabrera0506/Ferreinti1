@@ -195,6 +195,148 @@ export const AdminProducts = () => {
     }));
   };
 
+  // CSV Import Functions
+  const parseCSV = (text) => {
+    const lines = text.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return [];
+    
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+    const products = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      const values = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (const char of lines[i]) {
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          values.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      values.push(current.trim());
+      
+      const product = {};
+      headers.forEach((header, index) => {
+        let value = values[index] || '';
+        value = value.replace(/^"|"$/g, '');
+        
+        // Map common CSV headers to our format
+        if (header.includes('nombre') || header.includes('name') || header.includes('title')) {
+          product.name = value;
+        } else if (header.includes('descripcion') || header.includes('description') || header.includes('body')) {
+          product.description = value;
+        } else if (header.includes('precio') || header.includes('price')) {
+          product.price = parseFloat(value) || 0;
+        } else if (header.includes('sku') || header.includes('codigo') || header.includes('handle')) {
+          product.sku = value;
+        } else if (header.includes('stock') || header.includes('cantidad') || header.includes('inventory')) {
+          product.stock = parseInt(value) || 0;
+        } else if (header.includes('imagen') || header.includes('image') || header.includes('src')) {
+          if (value) {
+            product.images = product.images || [];
+            product.images.push(value);
+          }
+        } else if (header.includes('categoria') || header.includes('category') || header.includes('type')) {
+          product.category_name = value;
+        }
+      });
+      
+      if (product.name) {
+        product.sku = product.sku || `SKU-${Date.now()}-${i}`;
+        product.stock = product.stock || 10;
+        product.images = product.images || [];
+        products.push(product);
+      }
+    }
+    
+    return products;
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!file.name.endsWith('.csv')) {
+      toast.error('Por favor selecciona un archivo CSV');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target.result;
+      const parsedProducts = parseCSV(text);
+      if (parsedProducts.length === 0) {
+        toast.error('No se encontraron productos válidos en el CSV');
+        return;
+      }
+      setCsvData(parsedProducts);
+      setImportDialogOpen(true);
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
+  const importProducts = async () => {
+    if (csvData.length === 0) return;
+    
+    setImporting(true);
+    setImportProgress({ current: 0, total: csvData.length });
+    
+    let imported = 0;
+    let skipped = 0;
+    
+    for (let i = 0; i < csvData.length; i++) {
+      const prod = csvData[i];
+      setImportProgress({ current: i + 1, total: csvData.length });
+      
+      try {
+        // Find category by name or use first one
+        let categoryId = categories[0]?.category_id;
+        if (prod.category_name) {
+          const foundCat = categories.find(c => 
+            c.name.toLowerCase().includes(prod.category_name.toLowerCase())
+          );
+          if (foundCat) categoryId = foundCat.category_id;
+        }
+        
+        const payload = {
+          name: prod.name,
+          description: prod.description || '',
+          price: prod.price || 0,
+          sku: prod.sku,
+          stock: prod.stock,
+          category_id: categoryId,
+          images: prod.images,
+          features: [],
+          is_offer: false,
+          is_bestseller: false,
+          is_new: true
+        };
+        
+        await axios.post(`${API}/admin/products`, payload, { withCredentials: true });
+        imported++;
+      } catch (err) {
+        if (err.response?.status === 400 && err.response?.data?.detail?.includes('SKU')) {
+          skipped++;
+        } else {
+          console.error('Error importing:', prod.name, err);
+          skipped++;
+        }
+      }
+    }
+    
+    setImporting(false);
+    setImportDialogOpen(false);
+    setCsvData([]);
+    toast.success(`Importación completada: ${imported} importados, ${skipped} omitidos`);
+    fetchProducts();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
