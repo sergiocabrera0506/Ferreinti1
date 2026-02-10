@@ -745,50 +745,50 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             {/* Main Banner */}
-            <div className="lg:col-span-2 lg:row-span-2 relative rounded-sm overflow-hidden group cursor-pointer" onClick={() => navigate('/categoria/herramientas-electricas')}>
+            <div className="lg:col-span-2 lg:row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer shadow-2xl" onClick={() => navigate('/categoria/herramientas-electricas')}>
               <img 
                 src="https://images.unsplash.com/photo-1540103711724-ebf833bde8d1?w=1200&q=80"
                 alt="Herramientas Profesionales"
-                className="w-full h-64 md:h-96 lg:h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-64 md:h-96 lg:h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                <Badge className="badge-offer mb-3">HASTA 30% OFF</Badge>
-                <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white mb-2">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                <Badge className="badge-offer mb-4 px-4 py-1.5 rounded-full text-sm">HASTA 30% OFF</Badge>
+                <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 drop-shadow-lg">
                   Herramientas<br />Profesionales
                 </h1>
-                <p className="text-white/80 text-sm md:text-base mb-4 max-w-md">
+                <p className="text-white/90 text-sm md:text-base mb-5 max-w-md">
                   Encuentra las mejores herramientas eléctricas y manuales para tu trabajo
                 </p>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm font-bold uppercase" data-testid="hero-cta-btn">
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold uppercase px-6 py-3 shadow-lg shadow-primary/40 hover:shadow-xl hover:shadow-primary/50 transition-all hover:scale-105" data-testid="hero-cta-btn">
                   Ver Ofertas <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </div>
             
             {/* Side banners */}
-            <div className="relative rounded-sm overflow-hidden group cursor-pointer" onClick={() => navigate('/categoria/accesorios-bano')}>
+            <div className="relative rounded-2xl overflow-hidden group cursor-pointer shadow-xl hover:shadow-2xl transition-shadow" onClick={() => navigate('/categoria/accesorios-bano')}>
               <img 
                 src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&q=80"
                 alt="Accesorios Baño"
-                className="w-full h-44 object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-44 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h3 className="text-lg font-bold text-white">Accesorios Baño</h3>
-                <p className="text-white/70 text-xs">Renueva tu baño</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+                <h3 className="text-xl font-bold text-white drop-shadow">Accesorios Baño</h3>
+                <p className="text-white/80 text-sm">Renueva tu baño</p>
               </div>
             </div>
-            <div className="relative rounded-sm overflow-hidden group cursor-pointer" onClick={() => navigate('/categoria/conexiones-electricas')}>
+            <div className="relative rounded-2xl overflow-hidden group cursor-pointer shadow-xl hover:shadow-2xl transition-shadow" onClick={() => navigate('/categoria/conexiones-electricas')}>
               <img 
                 src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
                 alt="Conexiones Eléctricas"
-                className="w-full h-44 object-cover transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-44 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h3 className="text-lg font-bold text-white">Conexiones Eléctricas</h3>
-                <p className="text-white/70 text-xs">Material certificado</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+                <h3 className="text-xl font-bold text-white drop-shadow">Conexiones Eléctricas</h3>
+                <p className="text-white/80 text-sm">Material certificado</p>
               </div>
             </div>
           </div>
@@ -796,10 +796,15 @@ const HomePage = () => {
       </section>
 
       {/* Categories */}
-      <section className="py-12 md:py-16 bg-background">
+      <section className="py-12 md:py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold mb-8">Categorías</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="flex items-center justify-between mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold">Categorías</h2>
+            <Link to="/categorias" className="text-primary font-medium flex items-center gap-1 hover:gap-2 transition-all">
+              Ver todas <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             {categories.map((cat) => (
               <Link 
                 key={cat.category_id}
@@ -807,17 +812,17 @@ const HomePage = () => {
                 className="group"
                 data-testid={`category-card-${cat.slug}`}
               >
-                <Card className="overflow-hidden rounded-sm border-border hover-lift">
+                <Card className="overflow-hidden rounded-2xl border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                   <div className="aspect-square relative overflow-hidden">
                     <img 
                       src={cat.image} 
                       alt={cat.name}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center">
+                        <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
                           <CategoryIcon icon={cat.icon} className="w-4 h-4 text-primary-foreground" />
                         </div>
                       </div>
