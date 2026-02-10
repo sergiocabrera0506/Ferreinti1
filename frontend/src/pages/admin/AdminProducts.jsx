@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { 
-  Plus, Search, Edit, Trash2, Loader2, Package, X, Save, ImagePlus
+  Plus, Search, Edit, Trash2, Loader2, Package, X, Save, ImagePlus, Upload, FileSpreadsheet, Check
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
