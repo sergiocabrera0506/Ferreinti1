@@ -54,6 +54,15 @@ Tienda en línea Ferre Inti de ferretería. El usuario quiere:
 - [x] Categorías en footer limitadas con scroll
 - [x] Scroll to top al abrir producto
 - [x] Eliminada marca "Made with Emergent"
+- [x] **Rediseño visual completo:**
+  - Bordes redondeados (2xl) en tarjetas, botones, banners
+  - Sombras suaves con efecto hover elevado
+  - Gradientes en precios y badges
+  - Animaciones más fluidas (cubic-bezier)
+  - Estrellas de calificación visuales
+  - Íconos de categorías con sombra
+  - Login con fondo gradiente y tarjeta elegante
+  - Espaciado más generoso entre secciones
 
 ### Credenciales Admin
 - Email: admin@ferreinti.com
