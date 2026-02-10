@@ -6,7 +6,8 @@ import {
   Search, ShoppingCart, Heart, User, Menu, X, Plus, Minus, Trash2, 
   Star, ChevronRight, Facebook, Phone, MapPin, Wrench, Zap, Cable, 
   Droplets, ChefHat, Circle, ArrowRight, Check, Loader2, LogOut,
-  Home as HomeIcon, Package, Clock, TrendingUp, Sparkles, Truck, Settings, Info
+  Home as HomeIcon, Package, Clock, TrendingUp, Sparkles, Truck, Settings, Info,
+  Eye, EyeOff
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
