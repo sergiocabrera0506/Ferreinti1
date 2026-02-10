@@ -54,6 +54,12 @@ export const AdminProducts = () => {
   const [saving, setSaving] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [newFeature, setNewFeature] = useState('');
+  
+  // CSV Import states
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [csvData, setCsvData] = useState([]);
+  const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
 
   const fetchProducts = async () => {
     try {
