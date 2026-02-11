@@ -761,7 +761,9 @@ async def create_order(order_data: OrderCreate, user: User = Depends(require_aut
 
 # ==================== PAYMENTS ROUTES ====================
 
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+import stripe
+
+stripe.api_key = STRIPE_API_KEY
 
 @api_router.post("/payments/checkout")
 async def create_checkout(checkout_data: CheckoutRequest, request: Request, user: User = Depends(require_auth)):
@@ -770,12 +772,24 @@ async def create_checkout(checkout_data: CheckoutRequest, request: Request, user
     if not cart or not cart.get("items"):
         raise HTTPException(status_code=400, detail="El carrito está vacío")
     
-    # Calculate subtotal
+    # Calculate subtotal and build line items
     subtotal = 0.0
+    line_items = []
     for item in cart["items"]:
         product = await db.products.find_one({"product_id": item["product_id"]}, {"_id": 0})
         if product:
             subtotal += product["price"] * item["quantity"]
+            line_items.append({
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": product["name"],
+                        "images": product.get("images", [])[:1]
+                    },
+                    "unit_amount": int(product["price"] * 100)
+                },
+                "quantity": item["quantity"]
+            })
     
     # Calculate shipping
     shipping_cost = 0.0
@@ -786,40 +800,46 @@ async def create_checkout(checkout_data: CheckoutRequest, request: Request, user
         )
         shipping_cost = shipping_result["shipping_cost"]
     
+    # Add shipping as line item if applicable
+    if shipping_cost > 0:
+        line_items.append({
+            "price_data": {
+                "currency": "usd",
+                "product_data": {"name": "Envío"},
+                "unit_amount": int(shipping_cost * 100)
+            },
+            "quantity": 1
+        })
+    
     total = subtotal + shipping_cost
     
     if total <= 0:
         raise HTTPException(status_code=400, detail="El total debe ser mayor a 0")
     
-    # Create Stripe checkout
-    host_url = str(request.base_url).rstrip('/')
-    webhook_url = f"{host_url}/api/webhook/stripe"
-    
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    
     origin = checkout_data.origin_url.rstrip('/')
     success_url = f"{origin}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{origin}/checkout/cancel"
     
-    checkout_request = CheckoutSessionRequest(
-        amount=round(total, 2),
-        currency="usd",
-        success_url=success_url,
-        cancel_url=cancel_url,
-        metadata={
-            "user_id": user.user_id, 
-            "user_email": user.email,
-            "subtotal": str(subtotal),
-            "shipping_cost": str(shipping_cost)
-        }
-    )
-    
-    session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=line_items,
+            mode="payment",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "user_id": user.user_id,
+                "user_email": user.email
+            }
+        )
+    except Exception as e:
+        logger.error(f"Stripe error: {e}")
+        raise HTTPException(status_code=500, detail="Error al crear sesión de pago")
     
     # Create payment transaction record
     transaction_doc = {
         "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
-        "session_id": session.session_id,
+        "session_id": session.id,
         "user_id": user.user_id,
         "user_email": user.email,
         "subtotal": round(subtotal, 2),
@@ -833,42 +853,40 @@ async def create_checkout(checkout_data: CheckoutRequest, request: Request, user
     }
     await db.payment_transactions.insert_one(transaction_doc)
     
-    return {"url": session.url, "session_id": session.session_id, "total": total, "shipping_cost": shipping_cost}
+    return {"url": session.url, "session_id": session.id, "total": total, "shipping_cost": shipping_cost}
 
 @api_router.get("/payments/status/{session_id}")
 async def get_payment_status(session_id: str, request: Request):
-    host_url = str(request.base_url).rstrip('/')
-    webhook_url = f"{host_url}/api/webhook/stripe"
-    
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    status: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
-    
-    # Update transaction
-    await db.payment_transactions.update_one(
-        {"session_id": session_id},
-        {"$set": {"status": status.status, "payment_status": status.payment_status}}
-    )
-    
-    return status
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+        status = session.status
+        payment_status = session.payment_status
+        
+        # Update transaction
+        await db.payment_transactions.update_one(
+            {"session_id": session_id},
+            {"$set": {"status": status, "payment_status": payment_status}}
+        )
+        
+        return {"status": status, "payment_status": payment_status, "session_id": session_id}
+    except Exception as e:
+        logger.error(f"Stripe status error: {e}")
+        raise HTTPException(status_code=400, detail="Error al obtener estado del pago")
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
     body = await request.body()
     signature = request.headers.get("Stripe-Signature")
     
-    host_url = str(request.base_url).rstrip('/')
-    webhook_url = f"{host_url}/api/webhook/stripe"
-    
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    
     try:
-        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        event = stripe.Webhook.construct_event(body, signature, STRIPE_API_KEY)
         
-        # Update transaction
-        await db.payment_transactions.update_one(
-            {"session_id": webhook_response.session_id},
-            {"$set": {"status": webhook_response.event_type, "payment_status": webhook_response.payment_status}}
-        )
+        if event["type"] == "checkout.session.completed":
+            session = event["data"]["object"]
+            await db.payment_transactions.update_one(
+                {"session_id": session["id"]},
+                {"$set": {"status": "completed", "payment_status": "paid"}}
+            )
         
         return {"status": "ok"}
     except Exception as e:
