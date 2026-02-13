@@ -905,6 +905,68 @@ async def stripe_webhook(request: Request):
         logger.error(f"Webhook error: {e}")
         return {"status": "error"}
 
+# ==================== CLOUDINARY ROUTES ====================
+
+ALLOWED_FOLDERS = ("products/", "categories/", "users/", "uploads/")
+
+@api_router.get("/cloudinary/signature")
+async def generate_cloudinary_signature(
+    resource_type: str = Query("image", enum=["image", "video"]),
+    folder: str = Query("products")
+):
+    """Generate signed upload params for Cloudinary"""
+    # Validate folder
+    folder_with_slash = folder if folder.endswith("/") else f"{folder}/"
+    if not any(folder_with_slash.startswith(allowed) for allowed in ALLOWED_FOLDERS):
+        raise HTTPException(status_code=400, detail="Carpeta no permitida")
+
+    timestamp = int(time.time())
+    params = {
+        "timestamp": timestamp,
+        "folder": folder,
+    }
+
+    signature = cloudinary.utils.api_sign_request(
+        params,
+        os.environ.get("CLOUDINARY_API_SECRET")
+    )
+
+    return {
+        "signature": signature,
+        "timestamp": timestamp,
+        "cloud_name": os.environ.get("CLOUDINARY_CLOUD_NAME"),
+        "api_key": os.environ.get("CLOUDINARY_API_KEY"),
+        "folder": folder,
+        "resource_type": resource_type
+    }
+
+@api_router.delete("/cloudinary/delete")
+async def delete_cloudinary_image(
+    public_id: str = Query(..., description="Public ID of the image to delete"),
+    user: User = Depends(require_admin)
+):
+    """Delete an image from Cloudinary (admin only)"""
+    try:
+        result = cloudinary.uploader.destroy(public_id, invalidate=True)
+        return {"message": "Imagen eliminada", "result": result}
+    except Exception as e:
+        logger.error(f"Cloudinary delete error: {e}")
+        raise HTTPException(status_code=500, detail="Error al eliminar imagen")
+
+@api_router.get("/cloudinary/config")
+async def get_cloudinary_config():
+    """Get Cloudinary config for frontend (public info only)"""
+    return {
+        "cloud_name": os.environ.get("CLOUDINARY_CLOUD_NAME"),
+        "upload_preset": None,  # Using signed uploads instead
+        "max_file_size": 10485760,  # 10MB
+        "allowed_formats": ["jpg", "jpeg", "png", "webp", "gif"],
+        "transformation": {
+            "quality": "auto",
+            "fetch_format": "auto"
+        }
+    }
+
 # ==================== ADMIN ROUTES ====================
 
 # Dashboard Stats
