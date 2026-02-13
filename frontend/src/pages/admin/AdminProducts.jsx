@@ -685,33 +685,74 @@ export const AdminProducts = () => {
 
               {/* Images */}
               <div>
-                <Label>Imágenes</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    placeholder="URL de imagen"
-                    value={newImage}
-                    onChange={(e) => setNewImage(e.target.value)}
-                    className="rounded-sm"
-                  />
-                  <Button type="button" variant="outline" onClick={addImage} className="rounded-sm">
-                    <ImagePlus className="w-4 h-4" />
-                  </Button>
-                </div>
-                {formData.images.length > 0 && (
-                  <div className="flex gap-2 mt-2 flex-wrap">
-                    {formData.images.map((img, idx) => (
-                      <div key={idx} className="relative group">
-                        <img src={img} alt="" className="w-16 h-16 object-cover rounded-sm" />
-                        <button
-                          onClick={() => removeImage(idx)}
-                          className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+                <Label className="flex items-center gap-2 mb-2">
+                  <Cloud className="w-4 h-4 text-blue-500" />
+                  Imágenes (Cloudinary)
+                </Label>
+                
+                <Tabs defaultValue="upload" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="upload">Subir Imagen</TabsTrigger>
+                    <TabsTrigger value="url">URL Manual</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upload" className="mt-4">
+                    <ImageUpload
+                      folder="products"
+                      multiple={true}
+                      maxFiles={8}
+                      existingImages={formData.images}
+                      onUploadComplete={(uploadedImages) => {
+                        const newUrls = uploadedImages.map(img => img.url);
+                        setFormData(prev => ({
+                          ...prev,
+                          images: [...prev.images, ...newUrls]
+                        }));
+                      }}
+                      onRemoveImage={(index) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          images: prev.images.filter((_, i) => i !== index)
+                        }));
+                      }}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="url" className="mt-4">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="URL de imagen (https://...)"
+                        value={newImage}
+                        onChange={(e) => setNewImage(e.target.value)}
+                        className="rounded-sm"
+                      />
+                      <Button type="button" variant="outline" onClick={addImage} className="rounded-sm">
+                        <ImagePlus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {formData.images.length > 0 && (
+                      <div className="flex gap-2 mt-3 flex-wrap">
+                        {formData.images.map((img, idx) => (
+                          <div key={idx} className="relative group">
+                            <img src={img} alt="" className="w-16 h-16 object-cover rounded-sm" />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(idx)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                            {idx === 0 && (
+                              <span className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-[10px] text-center">
+                                Principal
+                              </span>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
 
               {/* Features */}
