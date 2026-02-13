@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { 
   Plus, Search, Edit, Trash2, Loader2, Package, X, Save, ImagePlus, Upload, FileSpreadsheet, Check,
-  LayoutGrid, LayoutList, Eye
+  LayoutGrid, LayoutList, Eye, Cloud
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -23,6 +23,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from '../../components/ui/alert-dialog';
 import { ScrollArea } from '../../components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import ImageUpload from '../../components/ImageUpload';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
