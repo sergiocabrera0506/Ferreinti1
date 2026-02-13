@@ -12,7 +12,7 @@ from datetime import datetime
 class FerreIntiAPITester:
     def __init__(self):
         # Use the public backend URL from frontend/.env
-        self.base_url = "https://vista-mosaico.preview.emergentagent.com/api"
+        self.base_url = "https://admin-panel-local.preview.emergentagent.com/api"
         self.session = requests.Session()
         self.session.headers.update({'Content-Type': 'application/json'})
         
