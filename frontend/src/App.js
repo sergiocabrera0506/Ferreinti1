@@ -2422,53 +2422,38 @@ const ProfilePage = () => {
   );
 };
 
-// ==================== APP ROUTER ====================
+// ==================== ADMIN PROTECTED ROUTE ====================
 
-const AppRouter = () => {
-  const location = useLocation();
+const AdminProtectedRoute = () => {
   const { user, logout } = useAuth();
   
-  // Check URL fragment for session_id (OAuth callback) - Must be synchronous!
-  if (location.hash?.includes('session_id=')) {
-    return <AuthCallback />;
+  if (!user) {
+    return <AuthPage />;
   }
-
-  // Admin routes - separate layout
-  if (location.pathname.startsWith('/admin')) {
-    if (!user) {
-      return <AuthPage />;
-    }
-    if (user.role !== 'admin') {
-      return (
-        <main className="min-h-screen bg-muted flex items-center justify-center p-4">
-          <Card className="w-full max-w-md rounded-sm text-center">
-            <CardContent className="p-8">
-              <Settings className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h1 className="text-2xl font-bold mb-2">Acceso Denegado</h1>
-              <p className="text-muted-foreground mb-6">No tienes permisos de administrador.</p>
-              <Button onClick={() => window.location.href = '/'} className="rounded-sm">
-                Volver a la Tienda
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-      );
-    }
-    
+  
+  if (user.role !== 'admin') {
     return (
-      <Routes>
-        <Route path="/admin" element={<AdminLayout user={user} onLogout={logout} />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="productos" element={<AdminProducts />} />
-          <Route path="categorias" element={<AdminCategories />} />
-          <Route path="pedidos" element={<AdminOrders />} />
-          <Route path="usuarios" element={<AdminUsers />} />
-          <Route path="envios" element={<AdminShipping />} />
-        </Route>
-      </Routes>
+      <main className="min-h-screen bg-muted flex items-center justify-center p-4">
+        <Card className="w-full max-w-md rounded-sm text-center">
+          <CardContent className="p-8">
+            <Settings className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h1 className="text-2xl font-bold mb-2">Acceso Denegado</h1>
+            <p className="text-muted-foreground mb-6">No tienes permisos de administrador.</p>
+            <Button onClick={() => window.location.href = '/'} className="rounded-sm">
+              Volver a la Tienda
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
     );
   }
+  
+  return <AdminLayout user={user} onLogout={logout} />;
+};
 
+// ==================== MAIN LAYOUT ====================
+
+const MainLayout = () => {
   return (
     <>
       <Navbar />
@@ -2491,6 +2476,34 @@ const AppRouter = () => {
       </Routes>
       <Footer />
     </>
+  );
+};
+
+// ==================== APP ROUTER ====================
+
+const AppRouter = () => {
+  const location = useLocation();
+  
+  // Check URL fragment for session_id (OAuth callback) - Must be synchronous!
+  if (location.hash?.includes('session_id=')) {
+    return <AuthCallback />;
+  }
+
+  return (
+    <Routes>
+      {/* Admin routes */}
+      <Route path="/admin/*" element={<AdminProtectedRoute />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="productos" element={<AdminProducts />} />
+        <Route path="categorias" element={<AdminCategories />} />
+        <Route path="pedidos" element={<AdminOrders />} />
+        <Route path="usuarios" element={<AdminUsers />} />
+        <Route path="envios" element={<AdminShipping />} />
+      </Route>
+      
+      {/* Main store routes */}
+      <Route path="/*" element={<MainLayout />} />
+    </Routes>
   );
 };
 
