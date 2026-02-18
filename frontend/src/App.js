@@ -1867,6 +1867,227 @@ const AuthCallback = () => {
   );
 };
 
+// ==================== CREDIT CARD COMPONENT ====================
+
+const CreditCardInput = ({ cardData, setCardData, isFlipped, setIsFlipped }) => {
+  const formatCardNumber = (value) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = (matches && matches[0]) || '';
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    return parts.length ? parts.join(' ') : value;
+  };
+
+  const formatExpiry = (value) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4);
+    }
+    return v;
+  };
+
+  const getCardType = (number) => {
+    const n = number.replace(/\s/g, '');
+    if (/^4/.test(n)) return 'visa';
+    if (/^5[1-5]/.test(n)) return 'mastercard';
+    if (/^3[47]/.test(n)) return 'amex';
+    return 'generic';
+  };
+
+  const cardType = getCardType(cardData.number);
+
+  return (
+    <div className="w-full max-w-md mx-auto">
+      {/* Animated Card */}
+      <div 
+        className="relative h-56 mb-8"
+        style={{ perspective: '1000px' }}
+      >
+        <div 
+          className={`relative w-full h-full transition-transform duration-700`}
+          style={{ 
+            transformStyle: 'preserve-3d',
+            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+          }}
+        >
+          {/* Card Front */}
+          <div 
+            className="absolute inset-0 rounded-2xl p-6 text-white"
+            style={{ 
+              backfaceVisibility: 'hidden',
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+            }}
+          >
+            {/* Card Chip */}
+            <div className="flex justify-between items-start mb-8">
+              <div 
+                className="w-14 h-10 rounded-md"
+                style={{
+                  background: 'linear-gradient(135deg, #ffd700 0%, #ffaa00 50%, #ff8c00 100%)',
+                  boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.3)'
+                }}
+              >
+                <div className="w-full h-full grid grid-cols-3 gap-0.5 p-1">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="bg-yellow-600/50 rounded-sm" />
+                  ))}
+                </div>
+              </div>
+              {/* Card Type Logo */}
+              <div className="text-2xl font-bold tracking-wider">
+                {cardType === 'visa' && <span className="italic text-blue-300">VISA</span>}
+                {cardType === 'mastercard' && (
+                  <div className="flex">
+                    <div className="w-8 h-8 rounded-full bg-red-500 -mr-3 opacity-90" />
+                    <div className="w-8 h-8 rounded-full bg-yellow-500 opacity-90" />
+                  </div>
+                )}
+                {cardType === 'amex' && <span className="text-blue-200">AMEX</span>}
+                {cardType === 'generic' && <CreditCard className="w-10 h-10 text-gray-300" />}
+              </div>
+            </div>
+            
+            {/* Card Number */}
+            <div className="mb-6">
+              <div 
+                className="text-2xl tracking-[0.2em] font-mono"
+                style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
+              >
+                {cardData.number || '•••• •••• •••• ••••'}
+              </div>
+            </div>
+            
+            {/* Card Holder & Expiry */}
+            <div className="flex justify-between items-end">
+              <div>
+                <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Titular</div>
+                <div className="text-sm font-medium tracking-wider uppercase">
+                  {cardData.name || 'NOMBRE COMPLETO'}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Expira</div>
+                <div className="text-sm font-medium tracking-wider">
+                  {cardData.expiry || 'MM/YY'}
+                </div>
+              </div>
+            </div>
+            
+            {/* Decorative Elements */}
+            <div 
+              className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10"
+              style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)' }}
+            />
+          </div>
+          
+          {/* Card Back */}
+          <div 
+            className="absolute inset-0 rounded-2xl text-white"
+            style={{ 
+              backfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+            }}
+          >
+            {/* Magnetic Strip */}
+            <div className="w-full h-12 bg-gray-900 mt-8" />
+            
+            {/* CVV Section */}
+            <div className="px-6 mt-6">
+              <div className="bg-white h-10 rounded flex items-center justify-end px-4">
+                <span className="text-gray-900 font-mono text-lg tracking-widest">
+                  {cardData.cvv || '•••'}
+                </span>
+              </div>
+              <div className="text-[10px] text-gray-400 text-right mt-1">CVV</div>
+            </div>
+            
+            {/* Back Text */}
+            <div className="px-6 mt-6 text-[9px] text-gray-500 leading-relaxed">
+              <p>Esta tarjeta es propiedad del banco emisor. El uso no autorizado está prohibido.</p>
+            </div>
+            
+            {/* Card Type Logo Back */}
+            <div className="absolute bottom-6 right-6 text-xl font-bold">
+              {cardType === 'visa' && <span className="italic text-blue-300">VISA</span>}
+              {cardType === 'mastercard' && (
+                <div className="flex">
+                  <div className="w-6 h-6 rounded-full bg-red-500 -mr-2 opacity-90" />
+                  <div className="w-6 h-6 rounded-full bg-yellow-500 opacity-90" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Input Fields */}
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="cardNumber">Número de Tarjeta</Label>
+          <Input
+            id="cardNumber"
+            value={cardData.number}
+            onChange={(e) => setCardData(prev => ({ ...prev, number: formatCardNumber(e.target.value) }))}
+            placeholder="1234 5678 9012 3456"
+            maxLength={19}
+            className="rounded-sm mt-1 text-lg tracking-wider"
+            data-testid="card-number-input"
+            onFocus={() => setIsFlipped(false)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="cardName">Nombre del Titular</Label>
+          <Input
+            id="cardName"
+            value={cardData.name}
+            onChange={(e) => setCardData(prev => ({ ...prev, name: e.target.value.toUpperCase() }))}
+            placeholder="NOMBRE COMPLETO"
+            className="rounded-sm mt-1 uppercase"
+            data-testid="card-name-input"
+            onFocus={() => setIsFlipped(false)}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="cardExpiry">Fecha de Expiración</Label>
+            <Input
+              id="cardExpiry"
+              value={cardData.expiry}
+              onChange={(e) => setCardData(prev => ({ ...prev, expiry: formatExpiry(e.target.value) }))}
+              placeholder="MM/YY"
+              maxLength={5}
+              className="rounded-sm mt-1"
+              data-testid="card-expiry-input"
+              onFocus={() => setIsFlipped(false)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="cardCvv">CVV</Label>
+            <Input
+              id="cardCvv"
+              type="password"
+              value={cardData.cvv}
+              onChange={(e) => setCardData(prev => ({ ...prev, cvv: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
+              placeholder="•••"
+              maxLength={4}
+              className="rounded-sm mt-1"
+              data-testid="card-cvv-input"
+              onFocus={() => setIsFlipped(true)}
+              onBlur={() => setIsFlipped(false)}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CheckoutPage = () => {
   const { cart } = useCart();
   const { user } = useAuth();
@@ -1882,6 +2103,15 @@ const CheckoutPage = () => {
   });
   const [shippingCost, setShippingCost] = useState(null);
   const [calculatingShipping, setCalculatingShipping] = useState(false);
+  
+  // Credit Card State
+  const [cardData, setCardData] = useState({
+    number: '',
+    name: '',
+    expiry: '',
+    cvv: ''
+  });
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
 
   useEffect(() => {
     if (!user) navigate('/auth');
@@ -1906,6 +2136,26 @@ const CheckoutPage = () => {
     }
   };
 
+  const validateCard = () => {
+    if (!cardData.number || cardData.number.replace(/\s/g, '').length < 16) {
+      toast.error('Ingresa un número de tarjeta válido');
+      return false;
+    }
+    if (!cardData.name) {
+      toast.error('Ingresa el nombre del titular');
+      return false;
+    }
+    if (!cardData.expiry || cardData.expiry.length < 5) {
+      toast.error('Ingresa la fecha de expiración');
+      return false;
+    }
+    if (!cardData.cvv || cardData.cvv.length < 3) {
+      toast.error('Ingresa el CVV');
+      return false;
+    }
+    return true;
+  };
+
   const handleCheckout = async () => {
     if (cart.items.length === 0) {
       toast.error('Tu carrito está vacío');
@@ -1914,6 +2164,10 @@ const CheckoutPage = () => {
     
     if (!shippingAddress.street || !shippingAddress.city) {
       toast.error('Completa tu dirección de envío');
+      return;
+    }
+    
+    if (!validateCard()) {
       return;
     }
     
@@ -1938,12 +2192,12 @@ const CheckoutPage = () => {
 
   return (
     <main className="min-h-screen bg-muted" data-testid="checkout-page">
-      <div className="max-w-5xl mx-auto px-4 md:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-8">
         <h1 className="text-2xl md:text-3xl font-bold mb-8">Finalizar Compra</h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Address & Cart */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6">
             {/* Shipping Address */}
             <Card className="rounded-sm">
               <CardContent className="p-6">
@@ -2001,8 +2255,7 @@ const CheckoutPage = () => {
                     <div className="flex items-start gap-2 mb-3">
                       <Info className="w-4 h-4 text-blue-500 mt-0.5" />
                       <p className="text-sm text-muted-foreground">
-                        Para calcular el costo de envío, ingresa las coordenadas de tu ubicación. 
-                        Puedes obtenerlas de Google Maps haciendo clic derecho en tu ubicación.
+                        Para calcular el costo de envío, ingresa las coordenadas de tu ubicación.
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -2072,18 +2325,18 @@ const CheckoutPage = () => {
             <Card className="rounded-sm">
               <CardContent className="p-6">
                 <h2 className="font-bold text-lg mb-4">Resumen del Pedido</h2>
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-60 overflow-y-auto">
                   {cart.items.map((item) => (
                     <div key={item.product_id} className="flex gap-4">
                       <img 
                         src={item.product?.images?.[0] || 'https://via.placeholder.com/80'} 
                         alt={item.product?.name}
-                        className="w-16 h-16 object-cover rounded-sm"
+                        className="w-14 h-14 object-cover rounded-sm"
                       />
                       <div className="flex-1">
                         <h4 className="font-medium text-sm">{item.product?.name}</h4>
-                        <p className="text-sm text-muted-foreground">Cantidad: {item.quantity}</p>
-                        <p className="text-primary font-bold">${(item.product?.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">Cant: {item.quantity}</p>
+                        <p className="text-primary font-bold text-sm">${(item.product?.price * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
                   ))}
@@ -2092,11 +2345,27 @@ const CheckoutPage = () => {
             </Card>
           </div>
 
-          {/* Right Column - Payment */}
-          <div>
-            <Card className="rounded-sm sticky top-24">
+          {/* Right Column - Credit Card & Payment */}
+          <div className="space-y-6">
+            {/* Animated Credit Card */}
+            <Card className="rounded-sm">
               <CardContent className="p-6">
-                <h2 className="font-bold text-lg mb-4">Resumen</h2>
+                <h2 className="font-bold text-lg mb-6 flex items-center gap-2">
+                  <CreditCard className="w-5 h-5" /> Datos de Pago
+                </h2>
+                <CreditCardInput 
+                  cardData={cardData}
+                  setCardData={setCardData}
+                  isFlipped={isCardFlipped}
+                  setIsFlipped={setIsCardFlipped}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Payment Summary */}
+            <Card className="rounded-sm">
+              <CardContent className="p-6">
+                <h2 className="font-bold text-lg mb-4">Resumen de Pago</h2>
                 <div className="space-y-2 mb-6">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
@@ -2113,7 +2382,7 @@ const CheckoutPage = () => {
                     </span>
                   </div>
                   <Separator className="my-3" />
-                  <div className="flex justify-between text-lg font-bold">
+                  <div className="flex justify-between text-xl font-bold">
                     <span>Total</span>
                     <span className="text-primary">${total.toFixed(2)}</span>
                   </div>
@@ -2121,15 +2390,16 @@ const CheckoutPage = () => {
                 <Button 
                   onClick={handleCheckout}
                   disabled={loading || cart.items.length === 0}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm font-bold uppercase"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm font-bold uppercase h-12 text-base"
                   data-testid="pay-now-btn"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Pagar con Stripe
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Lock className="w-5 h-5 mr-2" />}
+                  Pagar ${total.toFixed(2)}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center mt-3">
-                  Pago seguro con tarjeta de crédito o débito
-                </p>
+                <div className="flex items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
+                  <Lock className="w-3 h-3" />
+                  <span>Pago 100% seguro con encriptación SSL</span>
+                </div>
               </CardContent>
             </Card>
           </div>
