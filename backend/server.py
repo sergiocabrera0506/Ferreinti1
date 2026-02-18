@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, Query
 from fastapi.security import HTTPBearer
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -6,17 +6,17 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone, timedelta
-import bcrypt
+import hashlib
 import httpx
 import math
-import re
-from collections import defaultdict
 import time
-import asyncio
+import cloudinary
+import cloudinary.utils
+import cloudinary.uploader
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -29,6 +29,14 @@ db = client[os.environ['DB_NAME']]
 # Stripe
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
 
+# Cloudinary configuration
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    secure=True
+)
+
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer(auto_error=False)
@@ -37,64 +45,12 @@ security = HTTPBearer(auto_error=False)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# ==================== RATE LIMITING ====================
-rate_limit_store: Dict[str, List[float]] = defaultdict(list)
-RATE_LIMIT_REQUESTS = 5  # Max requests
-RATE_LIMIT_WINDOW = 60   # Per 60 seconds
-
-def check_rate_limit(ip: str, endpoint: str) -> bool:
-    """Check if IP has exceeded rate limit for endpoint"""
-    key = f"{ip}:{endpoint}"
-    now = time.time()
-    # Clean old entries
-    rate_limit_store[key] = [t for t in rate_limit_store[key] if now - t < RATE_LIMIT_WINDOW]
-    if len(rate_limit_store[key]) >= RATE_LIMIT_REQUESTS:
-        return False
-    rate_limit_store[key].append(now)
-    return True
-
-# ==================== SIMPLE CACHE ====================
-cache_store: Dict[str, Dict[str, Any]] = {}
-CACHE_TTL = 300  # 5 minutes
-
-def get_cached(key: str) -> Optional[Any]:
-    """Get value from cache if not expired"""
-    if key in cache_store:
-        if time.time() < cache_store[key]["expires"]:
-            return cache_store[key]["value"]
-        del cache_store[key]
-    return None
-
-def set_cached(key: str, value: Any, ttl: int = CACHE_TTL):
-    """Set value in cache with TTL"""
-    cache_store[key] = {"value": value, "expires": time.time() + ttl}
-
 # ==================== MODELS ====================
 
 class UserCreate(BaseModel):
     email: str
     password: str
     name: str
-    
-    @field_validator('password')
-    @classmethod
-    def validate_password(cls, v):
-        if len(v) < 8:
-            raise ValueError('La contraseña debe tener al menos 8 caracteres')
-        if not re.search(r'[A-Z]', v):
-            raise ValueError('La contraseña debe tener al menos una mayúscula')
-        if not re.search(r'[a-z]', v):
-            raise ValueError('La contraseña debe tener al menos una minúscula')
-        if not re.search(r'[0-9]', v):
-            raise ValueError('La contraseña debe tener al menos un número')
-        return v
-    
-    @field_validator('email')
-    @classmethod
-    def validate_email(cls, v):
-        if not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', v):
-            raise ValueError('Email inválido')
-        return v.lower()
 
 class UserLogin(BaseModel):
     email: str
@@ -122,17 +78,6 @@ class ProductBase(BaseModel):
     is_offer: bool = False
     is_bestseller: bool = False
     is_new: bool = False
-    # ============================================================
-    # 📏 VARIANTES/TAMAÑOS - Para productos como brocas, tornillos, etc.
-    # ============================================================
-    # Ejemplo: variants = [
-    #   {"size": "3mm", "price": 5.99, "stock": 20},
-    #   {"size": "5mm", "price": 7.99, "stock": 15},
-    #   {"size": "8mm", "price": 9.99, "stock": 10}
-    # ]
-    # Si variants está vacío, el producto no tiene variantes
-    variants: List[Dict[str, Any]] = []
-    has_variants: bool = False
 
 class Product(ProductBase):
     model_config = ConfigDict(extra="ignore")
@@ -154,8 +99,6 @@ class ProductCreate(BaseModel):
     is_offer: bool = False
     is_bestseller: bool = False
     is_new: bool = False
-    variants: List[Dict[str, Any]] = []
-    has_variants: bool = False
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -170,8 +113,6 @@ class ProductUpdate(BaseModel):
     is_offer: Optional[bool] = None
     is_bestseller: Optional[bool] = None
     is_new: Optional[bool] = None
-    variants: Optional[List[Dict[str, Any]]] = None
-    has_variants: Optional[bool] = None
 
 class Category(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -196,12 +137,10 @@ class CategoryUpdate(BaseModel):
 class CartItem(BaseModel):
     product_id: str
     quantity: int
-    selected_variant: Optional[str] = None  # Tamaño/variante seleccionada (ej: "5mm")
 
 class CartItemResponse(BaseModel):
     product_id: str
     quantity: int
-    selected_variant: Optional[str] = None
     product: Optional[Product] = None
 
 class ReviewCreate(BaseModel):
@@ -274,17 +213,7 @@ class ShippingCalculation(BaseModel):
 # ==================== HELPERS ====================
 
 def hash_password(password: str) -> str:
-    """Hash password using bcrypt (secure)"""
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against bcrypt hash"""
-    try:
-        return bcrypt.checkpw(password.encode(), hashed.encode())
-    except Exception:
-        # Fallback for old SHA256 hashes during migration
-        import hashlib
-        return hashlib.sha256(password.encode()).hexdigest() == hashed
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def generate_token() -> str:
     return f"token_{uuid.uuid4().hex}"
@@ -386,12 +315,7 @@ async def require_admin(request: Request) -> User:
 # ==================== AUTH ROUTES ====================
 
 @api_router.post("/auth/register")
-async def register(user_data: UserCreate, request: Request, response: Response):
-    # Rate limiting
-    client_ip = request.client.host if request.client else "unknown"
-    if not check_rate_limit(client_ip, "register"):
-        raise HTTPException(status_code=429, detail="Demasiados intentos. Intenta en 1 minuto.")
-    
+async def register(user_data: UserCreate, response: Response):
     existing = await db.users.find_one({"email": user_data.email})
     if existing:
         raise HTTPException(status_code=400, detail="El email ya está registrado")
@@ -412,7 +336,6 @@ async def register(user_data: UserCreate, request: Request, response: Response):
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.users.insert_one(user_doc)
-    logger.info(f"New user registered: {user_data.email} (role: {role})")
     
     # Create session
     session_token = generate_token()
@@ -437,15 +360,9 @@ async def register(user_data: UserCreate, request: Request, response: Response):
     return {"user_id": user_id, "email": user_data.email, "name": user_data.name, "role": role, "session_token": session_token}
 
 @api_router.post("/auth/login")
-async def login(credentials: UserLogin, request: Request, response: Response):
-    # Rate limiting
-    client_ip = request.client.host if request.client else "unknown"
-    if not check_rate_limit(client_ip, "login"):
-        raise HTTPException(status_code=429, detail="Demasiados intentos. Intenta en 1 minuto.")
-    
-    user = await db.users.find_one({"email": credentials.email.lower()}, {"_id": 0})
-    if not user or not verify_password(credentials.password, user.get("password", "")):
-        logger.warning(f"Failed login attempt for: {credentials.email}")
+async def login(credentials: UserLogin, response: Response):
+    user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
+    if not user or user.get("password") != hash_password(credentials.password):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
     
     session_token = generate_token()
@@ -565,23 +482,14 @@ async def logout(request: Request, response: Response):
 
 @api_router.get("/categories", response_model=List[Category])
 async def get_categories():
-    # Use cache for categories (frequently accessed)
-    cached = get_cached("all_categories")
-    if cached:
-        return cached
     categories = await db.categories.find({}, {"_id": 0}).to_list(100)
-    set_cached("all_categories", categories, ttl=600)  # Cache 10 min
     return categories
 
 @api_router.get("/categories/{slug}")
 async def get_category(slug: str):
-    cached = get_cached(f"category_{slug}")
-    if cached:
-        return cached
     category = await db.categories.find_one({"slug": slug}, {"_id": 0})
     if not category:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
-    set_cached(f"category_{slug}", category, ttl=600)
     return category
 
 # ==================== PRODUCTS ROUTES ====================
@@ -651,29 +559,13 @@ async def get_cart(user: User = Depends(require_auth)):
     for item in cart.get("items", []):
         product = await db.products.find_one({"product_id": item["product_id"]}, {"_id": 0})
         if product:
-            # Si tiene variante seleccionada, obtener el precio de esa variante
-            item_price = product["price"]
-            if item.get("selected_variant") and product.get("variants"):
-                variant = next((v for v in product["variants"] if v["size"] == item["selected_variant"]), None)
-                if variant:
-                    item_price = variant.get("price", product["price"])
-            
             items_with_products.append({**item, "product": product})
-            total += item_price * item["quantity"]
+            total += product["price"] * item["quantity"]
     
     return {"items": items_with_products, "total": round(total, 2)}
 
 @api_router.post("/cart/add")
 async def add_to_cart(item: CartItem, user: User = Depends(require_auth)):
-    # Verificar que el producto existe
-    product = await db.products.find_one({"product_id": item.product_id}, {"_id": 0})
-    if not product:
-        raise HTTPException(status_code=404, detail="Producto no encontrado")
-    
-    # Si el producto tiene variantes, verificar que se seleccionó una
-    if product.get("has_variants") and product.get("variants") and not item.selected_variant:
-        raise HTTPException(status_code=400, detail="Debes seleccionar un tamaño/medida")
-    
     cart = await db.carts.find_one({"user_id": user.user_id})
     
     if not cart:
@@ -683,12 +575,8 @@ async def add_to_cart(item: CartItem, user: User = Depends(require_auth)):
             "updated_at": datetime.now(timezone.utc).isoformat()
         })
     else:
-        # Check if item with same variant exists
-        existing_idx = next(
-            (i for i, x in enumerate(cart["items"]) 
-             if x["product_id"] == item.product_id and x.get("selected_variant") == item.selected_variant), 
-            None
-        )
+        # Check if item exists
+        existing_idx = next((i for i, x in enumerate(cart["items"]) if x["product_id"] == item.product_id), None)
         if existing_idx is not None:
             cart["items"][existing_idx]["quantity"] += item.quantity
         else:
@@ -835,33 +723,20 @@ async def get_orders(user: User = Depends(require_auth)):
 
 @api_router.post("/orders", response_model=Order)
 async def create_order(order_data: OrderCreate, user: User = Depends(require_auth)):
-    # Validate stock availability BEFORE creating order
+    # Get product details and calculate total
     items_with_details = []
     subtotal = 0
-    stock_errors = []
-    
     for item in order_data.items:
         product = await db.products.find_one({"product_id": item.product_id}, {"_id": 0})
-        if not product:
-            stock_errors.append(f"Producto {item.product_id} no encontrado")
-            continue
-        if product.get("stock", 0) < item.quantity:
-            stock_errors.append(f"{product['name']}: solo {product.get('stock', 0)} disponibles")
-            continue
-        items_with_details.append({
-            "product_id": item.product_id,
-            "quantity": item.quantity,
-            "name": product["name"],
-            "price": product["price"],
-            "image": product["images"][0] if product["images"] else ""
-        })
-        subtotal += product["price"] * item.quantity
-    
-    if stock_errors:
-        raise HTTPException(status_code=400, detail=f"Stock insuficiente: {', '.join(stock_errors)}")
-    
-    if not items_with_details:
-        raise HTTPException(status_code=400, detail="No hay productos válidos en la orden")
+        if product:
+            items_with_details.append({
+                "product_id": item.product_id,
+                "quantity": item.quantity,
+                "name": product["name"],
+                "price": product["price"],
+                "image": product["images"][0] if product["images"] else ""
+            })
+            subtotal += product["price"] * item.quantity
     
     # Calculate shipping
     shipping_cost = 0
@@ -873,13 +748,6 @@ async def create_order(order_data: OrderCreate, user: User = Depends(require_aut
         shipping_cost = shipping_result["shipping_cost"]
     
     total = subtotal + shipping_cost
-    
-    # Reduce stock for each product
-    for item in order_data.items:
-        await db.products.update_one(
-            {"product_id": item.product_id},
-            {"$inc": {"stock": -item.quantity}}
-        )
     
     order_id = f"order_{uuid.uuid4().hex[:12]}"
     order_doc = {
@@ -905,7 +773,9 @@ async def create_order(order_data: OrderCreate, user: User = Depends(require_aut
 
 # ==================== PAYMENTS ROUTES ====================
 
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+import stripe
+
+stripe.api_key = STRIPE_API_KEY
 
 @api_router.post("/payments/checkout")
 async def create_checkout(checkout_data: CheckoutRequest, request: Request, user: User = Depends(require_auth)):
@@ -914,12 +784,24 @@ async def create_checkout(checkout_data: CheckoutRequest, request: Request, user
     if not cart or not cart.get("items"):
         raise HTTPException(status_code=400, detail="El carrito está vacío")
     
-    # Calculate subtotal
+    # Calculate subtotal and build line items
     subtotal = 0.0
+    line_items = []
     for item in cart["items"]:
         product = await db.products.find_one({"product_id": item["product_id"]}, {"_id": 0})
         if product:
             subtotal += product["price"] * item["quantity"]
+            line_items.append({
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": product["name"],
+                        "images": product.get("images", [])[:1]
+                    },
+                    "unit_amount": int(product["price"] * 100)
+                },
+                "quantity": item["quantity"]
+            })
     
     # Calculate shipping
     shipping_cost = 0.0
@@ -930,40 +812,46 @@ async def create_checkout(checkout_data: CheckoutRequest, request: Request, user
         )
         shipping_cost = shipping_result["shipping_cost"]
     
+    # Add shipping as line item if applicable
+    if shipping_cost > 0:
+        line_items.append({
+            "price_data": {
+                "currency": "usd",
+                "product_data": {"name": "Envío"},
+                "unit_amount": int(shipping_cost * 100)
+            },
+            "quantity": 1
+        })
+    
     total = subtotal + shipping_cost
     
     if total <= 0:
         raise HTTPException(status_code=400, detail="El total debe ser mayor a 0")
     
-    # Create Stripe checkout
-    host_url = str(request.base_url).rstrip('/')
-    webhook_url = f"{host_url}/api/webhook/stripe"
-    
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    
     origin = checkout_data.origin_url.rstrip('/')
     success_url = f"{origin}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{origin}/checkout/cancel"
     
-    checkout_request = CheckoutSessionRequest(
-        amount=round(total, 2),
-        currency="usd",
-        success_url=success_url,
-        cancel_url=cancel_url,
-        metadata={
-            "user_id": user.user_id, 
-            "user_email": user.email,
-            "subtotal": str(subtotal),
-            "shipping_cost": str(shipping_cost)
-        }
-    )
-    
-    session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=line_items,
+            mode="payment",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "user_id": user.user_id,
+                "user_email": user.email
+            }
+        )
+    except Exception as e:
+        logger.error(f"Stripe error: {e}")
+        raise HTTPException(status_code=500, detail="Error al crear sesión de pago")
     
     # Create payment transaction record
     transaction_doc = {
         "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
-        "session_id": session.session_id,
+        "session_id": session.id,
         "user_id": user.user_id,
         "user_email": user.email,
         "subtotal": round(subtotal, 2),
@@ -977,47 +865,107 @@ async def create_checkout(checkout_data: CheckoutRequest, request: Request, user
     }
     await db.payment_transactions.insert_one(transaction_doc)
     
-    return {"url": session.url, "session_id": session.session_id, "total": total, "shipping_cost": shipping_cost}
+    return {"url": session.url, "session_id": session.id, "total": total, "shipping_cost": shipping_cost}
 
 @api_router.get("/payments/status/{session_id}")
 async def get_payment_status(session_id: str, request: Request):
-    host_url = str(request.base_url).rstrip('/')
-    webhook_url = f"{host_url}/api/webhook/stripe"
-    
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    status: CheckoutStatusResponse = await stripe_checkout.get_checkout_status(session_id)
-    
-    # Update transaction
-    await db.payment_transactions.update_one(
-        {"session_id": session_id},
-        {"$set": {"status": status.status, "payment_status": status.payment_status}}
-    )
-    
-    return status
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+        status = session.status
+        payment_status = session.payment_status
+        
+        # Update transaction
+        await db.payment_transactions.update_one(
+            {"session_id": session_id},
+            {"$set": {"status": status, "payment_status": payment_status}}
+        )
+        
+        return {"status": status, "payment_status": payment_status, "session_id": session_id}
+    except Exception as e:
+        logger.error(f"Stripe status error: {e}")
+        raise HTTPException(status_code=400, detail="Error al obtener estado del pago")
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
     body = await request.body()
     signature = request.headers.get("Stripe-Signature")
     
-    host_url = str(request.base_url).rstrip('/')
-    webhook_url = f"{host_url}/api/webhook/stripe"
-    
-    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
-    
     try:
-        webhook_response = await stripe_checkout.handle_webhook(body, signature)
+        event = stripe.Webhook.construct_event(body, signature, STRIPE_API_KEY)
         
-        # Update transaction
-        await db.payment_transactions.update_one(
-            {"session_id": webhook_response.session_id},
-            {"$set": {"status": webhook_response.event_type, "payment_status": webhook_response.payment_status}}
-        )
+        if event["type"] == "checkout.session.completed":
+            session = event["data"]["object"]
+            await db.payment_transactions.update_one(
+                {"session_id": session["id"]},
+                {"$set": {"status": "completed", "payment_status": "paid"}}
+            )
         
         return {"status": "ok"}
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         return {"status": "error"}
+
+# ==================== CLOUDINARY ROUTES ====================
+
+ALLOWED_FOLDERS = ("products/", "categories/", "users/", "uploads/")
+
+@api_router.get("/cloudinary/signature")
+async def generate_cloudinary_signature(
+    resource_type: str = Query("image", enum=["image", "video"]),
+    folder: str = Query("products")
+):
+    """Generate signed upload params for Cloudinary"""
+    # Validate folder
+    folder_with_slash = folder if folder.endswith("/") else f"{folder}/"
+    if not any(folder_with_slash.startswith(allowed) for allowed in ALLOWED_FOLDERS):
+        raise HTTPException(status_code=400, detail="Carpeta no permitida")
+
+    timestamp = int(time.time())
+    params = {
+        "timestamp": timestamp,
+        "folder": folder,
+    }
+
+    signature = cloudinary.utils.api_sign_request(
+        params,
+        os.environ.get("CLOUDINARY_API_SECRET")
+    )
+
+    return {
+        "signature": signature,
+        "timestamp": timestamp,
+        "cloud_name": os.environ.get("CLOUDINARY_CLOUD_NAME"),
+        "api_key": os.environ.get("CLOUDINARY_API_KEY"),
+        "folder": folder,
+        "resource_type": resource_type
+    }
+
+@api_router.delete("/cloudinary/delete")
+async def delete_cloudinary_image(
+    public_id: str = Query(..., description="Public ID of the image to delete"),
+    user: User = Depends(require_admin)
+):
+    """Delete an image from Cloudinary (admin only)"""
+    try:
+        result = cloudinary.uploader.destroy(public_id, invalidate=True)
+        return {"message": "Imagen eliminada", "result": result}
+    except Exception as e:
+        logger.error(f"Cloudinary delete error: {e}")
+        raise HTTPException(status_code=500, detail="Error al eliminar imagen")
+
+@api_router.get("/cloudinary/config")
+async def get_cloudinary_config():
+    """Get Cloudinary config for frontend (public info only)"""
+    return {
+        "cloud_name": os.environ.get("CLOUDINARY_CLOUD_NAME"),
+        "upload_preset": None,  # Using signed uploads instead
+        "max_file_size": 10485760,  # 10MB
+        "allowed_formats": ["jpg", "jpeg", "png", "webp", "gif"],
+        "transformation": {
+            "quality": "auto",
+            "fetch_format": "auto"
+        }
+    }
 
 # ==================== ADMIN ROUTES ====================
 
@@ -1348,194 +1296,88 @@ async def seed_data():
     
     return {"message": "Datos iniciales creados exitosamente"}
 
-# ==================== IMPORT FROM CSV (SHOPIFY FORMAT) ====================
+# ==================== IMPORT PRODUCTS FROM CSV ====================
 
-import csv
-from io import StringIO
-from fastapi import UploadFile, File
+class ImportProductsRequest(BaseModel):
+    clear_existing: bool = False
 
-def clean_html(html_text: str) -> str:
-    """Convert HTML to plain text"""
-    if not html_text:
-        return ""
-    # Remove HTML tags
-    import re
-    text = re.sub(r'<li>', '• ', html_text)
-    text = re.sub(r'<[^>]+>', '', text)
-    text = text.replace('&nbsp;', ' ').replace('&amp;', '&')
-    return text.strip()
-
-def extract_category_from_shopify(category_str: str) -> str:
-    """Extract main category from Shopify category path"""
-    if not category_str:
-        return "general"
-    # Take last part of category path
-    parts = category_str.split('>')
-    if len(parts) >= 2:
-        return parts[1].strip().lower().replace(' ', '-')[:30]
-    return parts[0].strip().lower().replace(' ', '-')[:30]
-
-def slugify(text: str) -> str:
-    """Convert text to slug"""
-    import re
-    text = text.lower().strip()
-    text = re.sub(r'[áàäâ]', 'a', text)
-    text = re.sub(r'[éèëê]', 'e', text)
-    text = re.sub(r'[íìïî]', 'i', text)
-    text = re.sub(r'[óòöô]', 'o', text)
-    text = re.sub(r'[úùüû]', 'u', text)
-    text = re.sub(r'[ñ]', 'n', text)
-    text = re.sub(r'[^a-z0-9\s-]', '', text)
-    text = re.sub(r'[\s_]+', '-', text)
-    return text[:50]
-
-@api_router.post("/admin/import/csv")
-async def import_products_csv(file: UploadFile = File(...), user: User = Depends(require_admin)):
-    """Import products from Shopify CSV format"""
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="Solo se permiten archivos CSV")
+@api_router.post("/admin/import-products")
+async def import_csv_products(request: ImportProductsRequest, user: User = Depends(require_admin)):
+    """Import products from the predefined CSV data"""
     
-    content = await file.read()
-    try:
-        # Try UTF-8 first, then latin-1
-        try:
-            text = content.decode('utf-8')
-        except:
-            text = content.decode('latin-1')
+    # Create new categories if needed
+    new_categories = [
+        {"category_id": "cat_adhesivos", "name": "Adhesivos y Pegamentos", "slug": "adhesivos-pegamentos", "image": "https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033443546.png?v=1731231292", "icon": "Droplets"},
+        {"category_id": "cat_fontaneria", "name": "Fontanería y Grifería", "slug": "fontaneria-griferia", "image": "https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_163019219.png?v=1730241021", "icon": "Droplets"},
+        {"category_id": "cat_hogar", "name": "Hogar y Limpieza", "slug": "hogar-limpieza", "image": "https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_031540433-Photoroom.png?v=1731230170", "icon": "HomeIcon"},
+    ]
+    
+    for cat in new_categories:
+        existing = await db.categories.find_one({"category_id": cat["category_id"]})
+        if not existing:
+            await db.categories.insert_one(cat)
+    
+    # CSV Products data (unique products only)
+    csv_products = [
+        {"name": "Montaje Sin Clavos FORTIKONG", "description": "Pega, fija y monta sin clavos, sin taquetes ni tornillos. Aplicador de precisión. Color amarillo claro. Alta resistencia.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033749915.png?v=1731231478"], "stock": 10, "sku": "FORT-001"},
+        {"name": "Pegamento Instantáneo Pegatanke", "description": "Pegamento instantáneo Toke ultra 3g, ideal para adherir materiales como acero, aluminio, hierro, caucho, cobre, madera, estaño, cuero.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033443546.png?v=1731231292"], "stock": 20, "sku": "PEGA-001"},
+        {"name": "Masilla Epóxica PEGATANKE", "description": "Epóxico no permite el paso a la humedad, corrosión o abrasión. Impermeable al agua, gasoil, gasolina, anticongelante, fluidos hidráulicos, aceites, grasas y demás disolventes. Aislante a los fluidos de transmisión y al ácido de las baterías.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033327017.png?v=1731231216"], "stock": 15, "sku": "PEGA-002"},
+        {"name": "Epóxico Transparente FORTIKONG", "description": "Ideal para reparación de madera, porcelana, fibra de vidrio, metales, luces LED, maquinaria, electrónica, automotriz, construcción. Secado rápido. Unión fuerte. Resiste hasta 130kg/cm2. Resistente al agua, ácido, aceite.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033126938.png?v=1731231095"], "stock": 15, "sku": "FORT-002"},
+        {"name": "Pega Acero Gris FORTIKONG", "description": "Ideal para metal, cerámica, plástico, motocicletas, tanques de combustible, parachoques, espejos, radiadores, lámparas, aparatos eléctricos. Latón, metales, cobre, hierro. Resiste hasta 160kg/cm2.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_033028825.png?v=1731231037"], "stock": 15, "sku": "FORT-003"},
+        {"name": "Pega Acero FORTIKONG", "description": "Ideal para metal, cerámica, plástico para motocicletas, tanques de combustible, parachoques, espejos, radiadores, lámparas. Latón, metales, cobre, hierro, plástico, cerámica. Resiste hasta 160kg/cm2. Color gris.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_032901788.png?v=1731230951"], "stock": 15, "sku": "FORT-004"},
+        {"name": "Pega Todo FORTIKONG", "description": "Color blanco. 85gr. Temperatura -5 a 50°C. Soporta 100 kg por cm2. Para madera, metales, espejos, mármol, hormigón, galvanizados, plásticos, cemento. Sella áreas de alta vibración. Uso exterior o interior.", "price": 0, "category_id": "cat_adhesivos", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_032056142.png?v=1731230464"], "stock": 20, "sku": "FORT-005"},
+        {"name": "Bote Para Basura Con Pedal 20L LION TOOLS", "description": "Acabado satinado. Cuerpo acero inoxidable. Cubeta interior de plástico PP. Cierre lento. 20 litros. 27cm x 44cm x 27cm.", "price": 0, "category_id": "cat_hogar", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_031540433-Photoroom.png?v=1731230170"], "stock": 5, "sku": "LION-001"},
+        {"name": "Bote Para Basura Con Pedal 12L LION TOOLS", "description": "Acabado Satinado. Cuerpo Acero Inoxidable 410. Cubeta Interior De Plástico PP. Cierre Lento. 27cm x 30.5cm x 27cm.", "price": 236.00, "category_id": "cat_hogar", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-11-10_025748572.png?v=1731229077"], "stock": 5, "sku": "LION-002"},
+        {"name": "Tarja Escurridor Izquierdo T01R", "description": "Tarja para Cocina. Tamaño: 80x50 cm. Lado: Izquierdo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_204737530.png?v=1730774859"], "stock": 3, "sku": "FIDIC-001"},
+        {"name": "Pack de Baño Completo", "description": "Set completo de accesorios para baño.", "price": 160.00, "category_id": "cat_bano", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_194447072-Photoroom.jpg?v=1730252700"], "stock": 5, "sku": "PACK-001"},
+        {"name": "Tarja Derecha FIDIC T01", "description": "Tarja 80x50. Escurridor Derecho. Calibre 22. Tipo Satín. FIDIC T01.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_161607540.png?v=1730240169"], "stock": 3, "sku": "FIDIC-002"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8511", "description": "Cubierta Metálica. Cuello Metálico. Cuerpo Metálico. 1/4\" Vuelta. Color Cromo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_195159060-Photoroom.jpg?v=1730253130"], "stock": 5, "sku": "FIDIC-003"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8501-1", "description": "Cuello Metálico. Cubierta Metálica. Cuerpo Metálico. Vuelta Completa. Color Cromo.", "price": 150.00, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_163019219.png?v=1730241021"], "stock": 5, "sku": "FIDIC-004"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8501", "description": "Cubierta Metálica. Cuello Metálico. Cuerpo Metálico. Vuelta Completa. Color Cromo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_162825230.png?v=1730240981"], "stock": 5, "sku": "FIDIC-005"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8281", "description": "Manerales Metálico. Cuello Flexible. Cuerpo De Bronce. Cubierta Metálica. Color Cromo. Vuelta Completa. Cuello Largo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_195040767-Photoroom.jpg?v=1730253062"], "stock": 5, "sku": "FIDIC-006"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8258", "description": "Cuello Metálico. Cubierta Metálica. Cuerpo De Bronce. Manerales Metálicos 1/4\" De Vuelta Mezcladora Para Fregadero 8\". Color Cromo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_194926958-Photoroom.jpg?v=1730253007"], "stock": 5, "sku": "FIDIC-007"},
+        {"name": "Mezcladora Para Fregadero A La Pared FIDIC F8255", "description": "Mezcladora Para Fregadero a la Pared. Cuello Metálico. Cubierta Metálica. Cuerpo De Bronce. Vuelta Completa. Color Cromo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_194806936-Photoroom.jpg?v=1730252913"], "stock": 5, "sku": "FIDIC-008"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8245BN", "description": "Cuello Metálico. Cubierta Metálica. Cuerpo De Bronce. Manerales Metálicos 1/4\" De Vuelta. Mezcladora Para Fregadero 8\". Color Satín.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_162011842.png?v=1730240413"], "stock": 5, "sku": "FIDIC-009"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8245", "description": "Cuello Metálico. Cubierta Metálica. Cuerpo De Bronce. Manerales Metálicos 1/4\" De Vuelta. Mezcladora Para Fregadero 8\". Color Cromo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_161838393.png?v=1730240320"], "stock": 5, "sku": "FIDIC-010"},
+        {"name": "Mezcladora Para Fregadero FIDIC F8202BN", "description": "Manerales Metálico. Cuello Metálico. Cuerpo De Bronce. Cubierta Metálica. Color Satín. Cuello Largo.", "price": 0, "category_id": "cat_fontaneria", "images": ["https://cdn.shopify.com/s/files/1/0898/6181/6593/files/imagen_2024-10-29_161607540.png?v=1730240169"], "stock": 5, "sku": "FIDIC-011"},
+    ]
+    
+    imported_count = 0
+    skipped_count = 0
+    
+    for prod_data in csv_products:
+        # Check if product already exists by SKU
+        existing = await db.products.find_one({"sku": prod_data["sku"]})
+        if existing:
+            skipped_count += 1
+            continue
         
-        reader = csv.DictReader(StringIO(text))
-        
-        imported = 0
-        skipped = 0
-        errors = []
-        categories_created = set()
-        
-        for row in reader:
-            try:
-                title = row.get('Title', '').strip()
-                if not title or title == 'Default Title':
-                    skipped += 1
-                    continue
-                
-                # Check if product already exists (by handle/slug)
-                handle = row.get('Handle', slugify(title))
-                existing = await db.products.find_one({"sku": handle})
-                if existing:
-                    skipped += 1
-                    continue
-                
-                # Extract price (allow 0 price for later editing)
-                price_str = row.get('Variant Price', '0').strip()
-                price = float(price_str) if price_str else 0
-                price = max(0, price)  # Allow 0 price
-                
-                # Original price (compare at)
-                original_price_str = row.get('Variant Compare At Price', '').strip()
-                original_price = float(original_price_str) if original_price_str else None
-                
-                # Stock
-                stock_str = row.get('Variant Inventory Qty', '0').strip()
-                stock = int(float(stock_str)) if stock_str else 0
-                
-                # Category
-                category_raw = row.get('Product Category', 'General')
-                category_slug = extract_category_from_shopify(category_raw)
-                
-                # Create category if not exists
-                if category_slug not in categories_created:
-                    existing_cat = await db.categories.find_one({"slug": category_slug})
-                    if not existing_cat:
-                        cat_name = category_slug.replace('-', ' ').title()
-                        await db.categories.insert_one({
-                            "category_id": f"cat_{uuid.uuid4().hex[:8]}",
-                            "name": cat_name,
-                            "slug": category_slug,
-                            "image": "https://images.unsplash.com/photo-1581166418878-11f0dde922c2?w=400",
-                            "icon": "Wrench"
-                        })
-                        categories_created.add(category_slug)
-                        logger.info(f"Created category: {cat_name}")
-                    else:
-                        categories_created.add(category_slug)
-                
-                # Get category_id
-                cat_doc = await db.categories.find_one({"slug": category_slug})
-                category_id = cat_doc["category_id"] if cat_doc else "cat_general"
-                
-                # Image
-                image_url = row.get('Image Src', '').strip()
-                images = [image_url] if image_url else []
-                
-                # Description
-                description = clean_html(row.get('Body (HTML)', ''))
-                if not description:
-                    description = title
-                
-                # Create product
-                product_doc = {
-                    "product_id": f"prod_{uuid.uuid4().hex[:8]}",
-                    "name": title,
-                    "description": description[:1000],
-                    "price": round(price, 2),
-                    "original_price": round(original_price, 2) if original_price and original_price > price else None,
-                    "category_id": category_id,
-                    "images": images,
-                    "features": [],
-                    "stock": max(0, stock),
-                    "sku": handle,
-                    "is_offer": bool(original_price and original_price > price),
-                    "is_bestseller": False,
-                    "is_new": True,
-                    "rating": 0,
-                    "review_count": 0,
-                    "created_at": datetime.now(timezone.utc).isoformat()
-                }
-                
-                await db.products.insert_one(product_doc)
-                imported += 1
-                
-            except Exception as e:
-                errors.append(f"{row.get('Title', 'Unknown')}: {str(e)}")
-                continue
-        
-        # Clear cache after import
-        cache_store.clear()
-        
-        logger.info(f"CSV Import completed: {imported} imported, {skipped} skipped")
-        
-        return {
-            "message": f"Importación completada",
-            "imported": imported,
-            "skipped": skipped,
-            "categories_created": len(categories_created),
-            "errors": errors[:10] if errors else []
+        product = {
+            "product_id": f"prod_{uuid.uuid4().hex[:8]}",
+            "name": prod_data["name"],
+            "description": prod_data["description"],
+            "price": prod_data["price"],
+            "category_id": prod_data["category_id"],
+            "images": prod_data["images"],
+            "features": [],
+            "stock": prod_data["stock"],
+            "sku": prod_data["sku"],
+            "is_offer": False,
+            "is_bestseller": False,
+            "is_new": True,
+            "rating": 0,
+            "review_count": 0,
+            "created_at": datetime.now(timezone.utc).isoformat()
         }
-        
-    except Exception as e:
-        logger.error(f"CSV Import error: {e}")
-        raise HTTPException(status_code=500, detail=f"Error procesando CSV: {str(e)}")
-
-@api_router.post("/admin/import/url")
-async def import_products_from_url(url: str, user: User = Depends(require_admin)):
-    """Import products from CSV URL"""
-    try:
-        async with httpx.AsyncClient() as client_http:
-            resp = await client_http.get(url, timeout=60)
-            if resp.status_code != 200:
-                raise HTTPException(status_code=400, detail="No se pudo descargar el archivo")
-        
-        # Create a fake UploadFile
-        class FakeUploadFile:
-            filename = "products.csv"
-            async def read(self):
-                return resp.content
-        
-        return await import_products_csv(FakeUploadFile(), user)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+        await db.products.insert_one(product)
+        imported_count += 1
+    
+    return {
+        "message": f"Importación completada",
+        "imported": imported_count,
+        "skipped": skipped_count,
+        "total_in_csv": len(csv_products)
+    }
 
 # ==================== MAIN APP ====================
 
@@ -1548,43 +1390,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-async def startup_db_client():
-    """Create indexes and clean expired sessions on startup"""
-    logger.info("Creating MongoDB indexes...")
-    try:
-        # User indexes
-        await db.users.create_index("email", unique=True)
-        await db.users.create_index("user_id", unique=True)
-        # Product indexes
-        await db.products.create_index("product_id", unique=True)
-        await db.products.create_index("category_id")
-        await db.products.create_index([("name", "text"), ("description", "text")])
-        await db.products.create_index("is_offer")
-        await db.products.create_index("is_bestseller")
-        await db.products.create_index("is_new")
-        # Session indexes
-        await db.user_sessions.create_index("session_token", unique=True)
-        await db.user_sessions.create_index("user_id")
-        await db.user_sessions.create_index("expires_at")
-        # Order indexes
-        await db.orders.create_index("order_id", unique=True)
-        await db.orders.create_index("user_id")
-        await db.orders.create_index("created_at")
-        # Category indexes
-        await db.categories.create_index("category_id", unique=True)
-        await db.categories.create_index("slug", unique=True)
-        logger.info("MongoDB indexes created successfully")
-        
-        # Clean expired sessions
-        expired_count = await db.user_sessions.delete_many({
-            "expires_at": {"$lt": datetime.now(timezone.utc).isoformat()}
-        })
-        if expired_count.deleted_count > 0:
-            logger.info(f"Cleaned {expired_count.deleted_count} expired sessions")
-    except Exception as e:
-        logger.warning(f"Index creation warning (may already exist): {e}")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
