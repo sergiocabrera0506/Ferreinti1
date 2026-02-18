@@ -7,7 +7,7 @@ import {
   Star, ChevronRight, Facebook, Phone, MapPin, Wrench, Zap, Cable, 
   Droplets, ChefHat, Circle, ArrowRight, Check, Loader2, LogOut,
   Home as HomeIcon, Package, Clock, TrendingUp, Sparkles, Truck, Settings, Info,
-  Eye, EyeOff, Grid3X3, List
+  Eye, EyeOff, Grid3X3, List, Lock, CreditCard
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
