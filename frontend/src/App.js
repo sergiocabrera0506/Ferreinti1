@@ -2616,6 +2616,7 @@ const CheckoutPage = () => {
                     <div className={getTruckClasses()} style={{ zIndex: 10 }}>
                       <div className="cargo-inside"></div>
                     </div>
+                    <div className="truck-shadow"></div>
                     
                     {/* Box */}
                     <div className={`box ${truckPhase === 'loading' ? 'slide-up' : ''}`} style={{ zIndex: 20 }}></div>
@@ -2624,6 +2625,8 @@ const CheckoutPage = () => {
                     <div className={getTruckClasses()} style={{ zIndex: 30 }}>
                       <div className="smoke smoke-1"></div>
                       <div className="smoke smoke-2"></div>
+                      <div className="speed-line sl-1"></div>
+                      <div className="speed-line sl-2"></div>
                       <div className="bumper"></div>
                       <div className="cargo-body-fg">
                         <div className="logo-ferre"></div>
@@ -2632,6 +2635,8 @@ const CheckoutPage = () => {
                       <div className="taillight"></div>
                       <div className="cab">
                         <div className="window"></div>
+                        <div className="mirror"></div>
+                        <div className="grille"></div>
                         <div className="headlight"></div>
                       </div>
                       <div className="wheel back"><div className="wheel-rim"></div></div>
