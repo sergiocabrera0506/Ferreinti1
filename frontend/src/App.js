@@ -29,6 +29,7 @@ import {
   AdminLayout, AdminDashboard, AdminProducts, AdminCategories, 
   AdminOrders, AdminUsers, AdminShipping, AdminBanners 
 } from './pages/admin';
+import BannerCarousel from './components/BannerCarousel'; // Carrusel de banners para el inicio
 import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
