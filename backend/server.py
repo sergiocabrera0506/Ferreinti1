@@ -1031,6 +1031,78 @@ async def convert_existing_images_to_webp(user: User = Depends(require_admin)):
         "updated_categories": updated_categories
     }
 
+# ==================== BANNERS ROUTES ====================
+
+@api_router.get("/banners")
+async def get_active_banners():
+    """Obtener banners activos para mostrar en la tienda"""
+    banners = await db.banners.find(
+        {"is_active": True}, 
+        {"_id": 0}
+    ).sort("order", 1).to_list(20)
+    return banners
+
+@api_router.get("/admin/banners")
+async def admin_get_banners(user: User = Depends(require_admin)):
+    """Obtener todos los banners (admin)"""
+    banners = await db.banners.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return {"banners": banners}
+
+@api_router.post("/admin/banners")
+async def create_banner(banner_data: dict, user: User = Depends(require_admin)):
+    """Crear nuevo banner"""
+    banner_id = f"banner_{uuid.uuid4().hex[:12]}"
+    
+    banner_doc = {
+        "banner_id": banner_id,
+        "title": banner_data.get("title", ""),
+        "subtitle": banner_data.get("subtitle", ""),
+        "image": banner_data.get("image", ""),
+        "image_mobile": banner_data.get("image_mobile", ""),
+        "link": banner_data.get("link", ""),
+        "button_text": banner_data.get("button_text", ""),
+        "is_active": banner_data.get("is_active", True),
+        "order": banner_data.get("order", 0),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.banners.insert_one(banner_doc)
+    
+    return {"banner_id": banner_id, "message": "Banner creado exitosamente"}
+
+@api_router.put("/admin/banners/{banner_id}")
+async def update_banner(banner_id: str, banner_data: dict, user: User = Depends(require_admin)):
+    """Actualizar banner existente"""
+    existing = await db.banners.find_one({"banner_id": banner_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Banner no encontrado")
+    
+    update_data = {
+        "title": banner_data.get("title", existing.get("title", "")),
+        "subtitle": banner_data.get("subtitle", existing.get("subtitle", "")),
+        "image": banner_data.get("image", existing.get("image", "")),
+        "image_mobile": banner_data.get("image_mobile", existing.get("image_mobile", "")),
+        "link": banner_data.get("link", existing.get("link", "")),
+        "button_text": banner_data.get("button_text", existing.get("button_text", "")),
+        "is_active": banner_data.get("is_active", existing.get("is_active", True)),
+        "order": banner_data.get("order", existing.get("order", 0)),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.banners.update_one({"banner_id": banner_id}, {"$set": update_data})
+    
+    return {"message": "Banner actualizado exitosamente"}
+
+@api_router.delete("/admin/banners/{banner_id}")
+async def delete_banner(banner_id: str, user: User = Depends(require_admin)):
+    """Eliminar banner"""
+    result = await db.banners.delete_one({"banner_id": banner_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Banner no encontrado")
+    
+    return {"message": "Banner eliminado exitosamente"}
+
 # ==================== ADMIN ROUTES ====================
 
 # Dashboard Stats
