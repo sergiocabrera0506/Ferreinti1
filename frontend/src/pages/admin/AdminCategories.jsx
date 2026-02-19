@@ -294,14 +294,15 @@ export const AdminCategories = () => {
               </Tabs>
             </div>
             <div>
-              <Label>Icono</Label>
+              <Label>Icono de categoría</Label>
+              <p className="text-xs text-muted-foreground mb-1">Símbolo que representa esta categoría en la tienda</p>
               <Select value={formData.icon} onValueChange={(val) => setFormData(prev => ({ ...prev, icon: val }))}>
                 <SelectTrigger className="rounded-sm mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {iconOptions.map(icon => (
-                    <SelectItem key={icon} value={icon}>{icon}</SelectItem>
+                    <SelectItem key={icon.value} value={icon.value}>{icon.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
