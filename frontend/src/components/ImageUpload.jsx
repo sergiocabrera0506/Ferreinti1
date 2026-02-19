@@ -291,11 +291,11 @@ export const ImageUpload = ({
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        onClick={() => !uploading && document.getElementById('image-upload-input').click()}
+        onClick={() => !uploading && document.getElementById(inputId).click()}
         data-testid="image-upload-dropzone"
       >
         <input
-          id="image-upload-input"
+          id={inputId}
           type="file"
           accept="image/*"
           multiple={multiple}
