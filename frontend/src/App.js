@@ -2297,7 +2297,7 @@ const CheckoutPage = () => {
     .cargo-body-fg {
       position: absolute; left: 8px; bottom: 12px;
       width: 72px; height: 52px;
-      background: linear-gradient(180deg, #f59f18 0%, #e08a0a 100%);
+      background: linear-gradient(180deg, #f5a623 0%, #e8950a 100%);
       box-shadow: 2px -2px 5px rgba(0,0,0,0.2);
       display: flex; align-items: center; justify-content: center;
       border-radius: 2px 0 0 2px;
