@@ -2253,10 +2253,13 @@ const CheckoutPage = () => {
         window.location.href = response.data.url;
       }, 3500);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Error al procesar el pago');
-      setLoading(false);
-      setTruckPhase('idle');
-      setButtonText('FINALIZAR COMPRA');
+      // Let the animation finish before showing the error
+      setTimeout(() => {
+        toast.error(err.response?.data?.detail || 'Error al procesar el pago');
+        setLoading(false);
+        setTruckPhase('idle');
+        setButtonText('FINALIZAR COMPRA');
+      }, 3500);
     }
   };
 
