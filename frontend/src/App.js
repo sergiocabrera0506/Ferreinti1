@@ -27,7 +27,7 @@ import { ScrollArea } from './components/ui/scroll-area';
 import { Alert, AlertDescription } from './components/ui/alert';
 import { 
   AdminLayout, AdminDashboard, AdminProducts, AdminCategories, 
-  AdminOrders, AdminUsers, AdminShipping 
+  AdminOrders, AdminUsers, AdminShipping, AdminBanners 
 } from './pages/admin';
 import './App.css';
 
