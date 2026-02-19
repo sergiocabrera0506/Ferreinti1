@@ -1,42 +1,108 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
-}
+/* Ferre Inti Styles */
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
-}
-
-.App-header {
+.App {
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom focus styles */
+*:focus-visible {
+    outline: 2px solid hsl(38 92% 50%);
+    outline-offset: 2px;
+}
+
+/* Image loading */
+img {
+    transition: opacity 0.3s ease;
+}
+
+img[loading="lazy"] {
+    opacity: 0;
+}
+
+img[loading="lazy"].loaded,
+img:not([loading="lazy"]) {
+    opacity: 1;
+}
+
+/* Button transitions */
+button {
+    transition: all 0.15s ease;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* Card shadows */
+.card-shadow {
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.08),
+        0 4px 6px rgba(0, 0, 0, 0.04);
+}
+
+.card-shadow:hover {
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.1),
+        0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Selection color */
+::selection {
+    background-color: hsl(38 92% 50% / 0.2);
+    color: hsl(222 84% 5%);
+}
+
+/* Badge pulse animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
     }
-    to {
-        transform: rotate(360deg);
+    50% {
+        opacity: 0.7;
     }
 }
 
-/* Ferre Inti Custom Styles */
-a {
-    -webkit-tap-highlight-color: hsl(38 92% 50% / 0.1);
+.animate-pulse-slow {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.product-card-hover {
-    transition: transform 0.2s, box-shadow 0.2s;
+/* Skeleton loading */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
 }
 
-.product-card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        hsl(var(--muted)) 25%,
+        hsl(var(--muted) / 0.5) 50%,
+        hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Toast customization */
+[data-sonner-toaster] {
+    --normal-bg: hsl(var(--card));
+    --normal-text: hsl(var(--card-foreground));
+    --normal-border: hsl(var(--border));
+}
+
+/* Mobile tap highlight */
+@media (hover: none) {
+    button,
+    a {
+        -webkit-tap-highlight-color: hsl(38 92% 50% / 0.1);
+    }
 }

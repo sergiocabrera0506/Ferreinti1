@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {
-  Package, Users, ShoppingBag, DollarSign, AlertTriangle,
+import { 
+  Package, Users, ShoppingBag, DollarSign, TrendingUp, AlertTriangle,
   ArrowUpRight, ArrowDownRight, Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -10,13 +10,19 @@ import { Badge } from '../../components/ui/badge';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const StatCard = ({ title, value, icon: Icon, color = "primary" }) => (
+const StatCard = ({ title, value, icon: Icon, trend, trendValue, color = "primary" }) => (
   <Card className="rounded-sm">
     <CardContent className="p-6">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground font-medium">{title}</p>
           <p className="text-2xl font-bold mt-1">{value}</p>
+          {trend && (
+            <div className={`flex items-center gap-1 mt-2 text-sm ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+              {trend === 'up' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+              <span>{trendValue}</span>
+            </div>
+          )}
         </div>
         <div className={`w-12 h-12 rounded-sm flex items-center justify-center ${
           color === 'primary' ? 'bg-primary/10 text-primary' :
@@ -68,14 +74,14 @@ export const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64" data-testid="admin-dashboard-loading">
+      <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!stats) {
-    return <div className="text-center text-muted-foreground" data-testid="admin-dashboard-error">Error al cargar estadisticas</div>;
+    return <div className="text-center text-muted-foreground">Error al cargar estadísticas</div>;
   }
 
   return (
@@ -84,26 +90,64 @@ export const AdminDashboard = () => {
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">Resumen general de tu tienda</p>
       </div>
+
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Ventas del Mes" value={`$${stats.revenue.month.toFixed(2)}`} icon={DollarSign} color="green" />
-        <StatCard title="Total Pedidos" value={stats.total_orders} icon={ShoppingBag} color="blue" />
-        <StatCard title="Productos" value={stats.total_products} icon={Package} color="primary" />
-        <StatCard title="Usuarios" value={stats.total_users} icon={Users} color="orange" />
+        <StatCard 
+          title="Ventas del Mes" 
+          value={`$${stats.revenue.month.toFixed(2)}`}
+          icon={DollarSign}
+          color="green"
+        />
+        <StatCard 
+          title="Total Pedidos" 
+          value={stats.total_orders}
+          icon={ShoppingBag}
+          color="blue"
+        />
+        <StatCard 
+          title="Productos" 
+          value={stats.total_products}
+          icon={Package}
+          color="primary"
+        />
+        <StatCard 
+          title="Usuarios" 
+          value={stats.total_users}
+          icon={Users}
+          color="orange"
+        />
       </div>
+
+      {/* Revenue Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="rounded-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Ventas Hoy</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold text-green-600">${stats.revenue.today.toFixed(2)}</p></CardContent>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Ventas Hoy</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-green-600">${stats.revenue.today.toFixed(2)}</p>
+          </CardContent>
         </Card>
         <Card className="rounded-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Ventas Semana</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold text-blue-600">${stats.revenue.week.toFixed(2)}</p></CardContent>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Ventas Semana</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-blue-600">${stats.revenue.week.toFixed(2)}</p>
+          </CardContent>
         </Card>
         <Card className="rounded-sm">
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Ventas Totales</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold text-primary">${stats.revenue.total.toFixed(2)}</p></CardContent>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Ventas Totales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-primary">${stats.revenue.total.toFixed(2)}</p>
+          </CardContent>
         </Card>
       </div>
+
+      {/* Alerts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {stats.pending_orders > 0 && (
           <Card className="rounded-sm border-yellow-200 bg-yellow-50">
@@ -113,7 +157,7 @@ export const AdminDashboard = () => {
               </div>
               <div>
                 <p className="font-medium text-yellow-800">{stats.pending_orders} pedidos pendientes</p>
-                <p className="text-sm text-yellow-600">Requieren atencion</p>
+                <p className="text-sm text-yellow-600">Requieren atención</p>
               </div>
             </CardContent>
           </Card>
@@ -132,9 +176,13 @@ export const AdminDashboard = () => {
           </Card>
         )}
       </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Orders */}
         <Card className="rounded-sm">
-          <CardHeader><CardTitle className="text-lg">Pedidos Recientes</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-lg">Pedidos Recientes</CardTitle>
+          </CardHeader>
           <CardContent>
             {stats.recent_orders.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">No hay pedidos</p>
@@ -158,17 +206,25 @@ export const AdminDashboard = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Top Products */}
         <Card className="rounded-sm">
-          <CardHeader><CardTitle className="text-lg">Productos Mas Vendidos</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-lg">Productos Más Vendidos</CardTitle>
+          </CardHeader>
           <CardContent>
             {stats.top_products.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">Sin datos</p>
             ) : (
               <div className="space-y-3">
                 {stats.top_products.map((product, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 bg-muted/50 rounded-sm">
-                    <div className="w-8 h-8 bg-primary/10 rounded-sm flex items-center justify-center text-primary font-bold">{idx + 1}</div>
-                    <div className="flex-1 min-w-0"><p className="font-medium text-sm truncate">{product.name || product._id}</p></div>
+                  <div key={product._id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-sm">
+                    <div className="w-8 h-8 bg-primary/10 rounded-sm flex items-center justify-center text-primary font-bold">
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{product.name || product._id}</p>
+                    </div>
                     <Badge variant="secondary">{product.total_sold} vendidos</Badge>
                   </div>
                 ))}
