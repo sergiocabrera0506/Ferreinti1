@@ -224,16 +224,55 @@ export const AdminCategories = () => {
               />
             </div>
             <div>
-              <Label>URL de Imagen</Label>
-              <Input
-                value={formData.image}
-                onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
-                placeholder="https://..."
-                className="rounded-sm mt-1"
-              />
-              {formData.image && (
-                <img src={formData.image} alt="Preview" className="mt-2 w-full h-32 object-cover rounded-sm" />
-              )}
+              <Label className="flex items-center gap-2 mb-2">
+                <Cloud className="w-4 h-4 text-blue-500" />
+                Imagen de Categoría
+              </Label>
+              
+              <Tabs defaultValue="upload" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="upload">Subir Imagen</TabsTrigger>
+                  <TabsTrigger value="url">URL Manual</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="upload" className="mt-4">
+                  <ImageUpload
+                    folder="categories"
+                    multiple={false}
+                    maxFiles={1}
+                    existingImages={formData.image ? [formData.image] : []}
+                    onUploadComplete={(uploadedImages) => {
+                      if (uploadedImages.length > 0) {
+                        setFormData(prev => ({ ...prev, image: uploadedImages[0].url }));
+                      }
+                    }}
+                    onRemoveImage={() => {
+                      setFormData(prev => ({ ...prev, image: '' }));
+                    }}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="url" className="mt-4">
+                  <Input
+                    value={formData.image}
+                    onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                    placeholder="https://..."
+                    className="rounded-sm"
+                  />
+                  {formData.image && (
+                    <div className="relative mt-2 group">
+                      <img src={formData.image} alt="Preview" className="w-full h-32 object-cover rounded-sm" />
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                        className="absolute top-2 right-2 w-6 h-6 bg-destructive text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
             <div>
               <Label>Icono</Label>
