@@ -2368,8 +2368,8 @@ const CheckoutPage = () => {
     }
     .box {
       position: absolute; bottom: -25px; left: 0px; width: 26px; height: 26px;
-      background: #f59f18;
-      border: 2px solid #d4850d; border-radius: 3px; opacity: 0;
+      background: #f5a623;
+      border: 2px solid #e8950a; border-radius: 3px; opacity: 0;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       display: flex; align-items: center; justify-content: center;
     }
