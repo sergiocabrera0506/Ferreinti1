@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { 
   LayoutDashboard, Package, FolderOpen, ShoppingBag, Users, Truck,
-  Menu, X, LogOut, ChevronRight, Wrench, Home
+  Menu, X, LogOut, ChevronRight, Wrench, Home, Image
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { ScrollArea } from '../../components/ui/scroll-area';
