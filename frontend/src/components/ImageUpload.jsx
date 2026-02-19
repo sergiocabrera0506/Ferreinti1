@@ -337,40 +337,37 @@ export const ImageUpload = ({
         </div>
       )}
 
-      {/* Existing Images Preview */}
+      {/* Existing Images Preview with Drag and Drop */}
       {existingImages.length > 0 && (
-        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
-          {existingImages.map((img, idx) => (
-            <div 
-              key={idx} 
-              className="relative aspect-square group rounded-lg overflow-hidden border"
-              data-testid={`uploaded-image-${idx}`}
+        <div>
+          {existingImages.length > 1 && (
+            <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+              <GripVertical className="w-3 h-3" />
+              Arrastra las imágenes para cambiar el orden. La primera será la principal.
+            </p>
+          )}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={existingImages.map((_, idx) => `image-${idx}`)}
+              strategy={rectSortingStrategy}
             >
-              <img 
-                src={typeof img === 'string' ? img : img.url} 
-                alt={`Imagen ${idx + 1}`}
-                className="w-full h-full object-cover"
-              />
-              {onRemoveImage && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveImage(idx);
-                  }}
-                  className="absolute top-1 right-1 w-6 h-6 bg-destructive text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  data-testid={`remove-image-${idx}`}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-              {idx === 0 && (
-                <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/70 text-white text-xs rounded">
-                  Principal
-                </span>
-              )}
-            </div>
-          ))}
+              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+                {existingImages.map((img, idx) => (
+                  <SortableImage
+                    key={`image-${idx}`}
+                    id={`image-${idx}`}
+                    img={img}
+                    index={idx}
+                    onRemove={onRemoveImage}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         </div>
       )}
 
