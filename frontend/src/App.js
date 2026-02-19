@@ -1056,11 +1056,13 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Offers */}
+      {/* ============================================================
+          OFERTAS ESPECIALES - Carrusel horizontal con flechas
+          ============================================================ */}
       <section className="py-12 md:py-20 bg-gradient-to-b from-muted to-background relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-orange-500 to-primary" />
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between mb-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-10 px-4 md:px-8">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30">
                 <TrendingUp className="w-6 h-6 text-primary-foreground" />
@@ -1074,18 +1076,26 @@ const HomePage = () => {
               Ver todas <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {offers.slice(0, 4).map((product) => (
-              <ProductCard key={product.product_id} product={product} onQuickAdd={addToCart} />
-            ))}
+          <div className="px-4 md:px-8">
+            <HorizontalCarousel scrollAmount={280}>
+              <div className="flex gap-4 md:gap-6" style={{ width: 'max-content' }}>
+                {offers.map((product) => (
+                  <div key={product.product_id} className="w-[160px] md:w-[220px] flex-shrink-0">
+                    <ProductCard product={product} onQuickAdd={addToCart} />
+                  </div>
+                ))}
+              </div>
+            </HorizontalCarousel>
           </div>
         </div>
       </section>
 
-      {/* Bestsellers */}
+      {/* ============================================================
+          LOS MÁS VENDIDOS - Carrusel horizontal con flechas
+          ============================================================ */}
       <section className="py-12 md:py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between mb-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-10 px-4 md:px-8">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
                 <Star className="w-6 h-6 text-white" />
@@ -1099,18 +1109,26 @@ const HomePage = () => {
               Ver todos <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {bestsellers.slice(0, 4).map((product) => (
-              <ProductCard key={product.product_id} product={product} onQuickAdd={addToCart} />
-            ))}
+          <div className="px-4 md:px-8">
+            <HorizontalCarousel scrollAmount={280}>
+              <div className="flex gap-4 md:gap-6" style={{ width: 'max-content' }}>
+                {bestsellers.map((product) => (
+                  <div key={product.product_id} className="w-[160px] md:w-[220px] flex-shrink-0">
+                    <ProductCard product={product} onQuickAdd={addToCart} />
+                  </div>
+                ))}
+              </div>
+            </HorizontalCarousel>
           </div>
         </div>
       </section>
 
-      {/* New Products */}
+      {/* ============================================================
+          LO NUEVO - Carrusel horizontal con flechas
+          ============================================================ */}
       <section className="py-12 md:py-20 bg-gradient-to-b from-background to-muted">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between mb-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-10 px-4 md:px-8">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
                 <Sparkles className="w-6 h-6 text-white" />
@@ -1124,10 +1142,16 @@ const HomePage = () => {
               Ver todos <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {newProducts.slice(0, 4).map((product) => (
-              <ProductCard key={product.product_id} product={product} onQuickAdd={addToCart} />
-            ))}
+          <div className="px-4 md:px-8">
+            <HorizontalCarousel scrollAmount={280}>
+              <div className="flex gap-4 md:gap-6" style={{ width: 'max-content' }}>
+                {newProducts.map((product) => (
+                  <div key={product.product_id} className="w-[160px] md:w-[220px] flex-shrink-0">
+                    <ProductCard product={product} onQuickAdd={addToCart} />
+                  </div>
+                ))}
+              </div>
+            </HorizontalCarousel>
           </div>
         </div>
       </section>
