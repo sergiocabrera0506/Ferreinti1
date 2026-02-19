@@ -1008,7 +1008,10 @@ const HomePage = () => {
         </section>
       )}
 
-      {/* Categories Carousel */}
+      {/* ============================================================
+          CARRUSEL DE CATEGORÍAS
+          Usa HorizontalCarousel para navegación con flechas
+          ============================================================ */}
       <section className="py-10 md:py-16 bg-background">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6 px-4 md:px-8">
@@ -1017,9 +1020,9 @@ const HomePage = () => {
               Ver todas <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="relative">
-            <div className="overflow-x-auto scrollbar-hide pb-4 -mb-4">
-              <div className="flex gap-4 px-4 md:px-8" style={{ width: 'max-content' }}>
+          <div className="px-4 md:px-8">
+            <HorizontalCarousel scrollAmount={200}>
+              <div className="flex gap-4" style={{ width: 'max-content' }}>
                 {categories.map((cat) => (
                   <Link 
                     key={cat.category_id}
@@ -1048,10 +1051,7 @@ const HomePage = () => {
                   </Link>
                 ))}
               </div>
-            </div>
-            {/* Gradient fade indicators */}
-            <div className="absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none hidden md:block" />
-            <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none hidden md:block" />
+            </HorizontalCarousel>
           </div>
         </div>
       </section>
