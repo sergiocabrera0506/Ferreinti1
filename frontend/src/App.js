@@ -2103,6 +2103,7 @@ const CheckoutPage = () => {
   });
   const [shippingCost, setShippingCost] = useState(null);
   const [calculatingShipping, setCalculatingShipping] = useState(false);
+  const [geocodingAddress, setGeocodingAddress] = useState(false);
   
   // Credit Card State
   const [cardData, setCardData] = useState({
@@ -2112,14 +2113,66 @@ const CheckoutPage = () => {
     cvv: ''
   });
   const [isCardFlipped, setIsCardFlipped] = useState(false);
+  
+  // Truck Animation State
+  const [truckPhase, setTruckPhase] = useState('idle'); // idle, drive-in, loading, drive-out, done
+  const [buttonText, setButtonText] = useState('FINALIZAR COMPRA');
 
   useEffect(() => {
     if (!user) navigate('/auth');
   }, [user, navigate]);
 
+  // Auto-geocode when address changes
+  const geocodeAddress = async () => {
+    const fullAddress = `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.state}, ${shippingAddress.zip_code}`.trim();
+    if (!shippingAddress.street || !shippingAddress.city) return;
+    
+    setGeocodingAddress(true);
+    try {
+      // Using OpenStreetMap Nominatim API (free)
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`,
+        { headers: { 'Accept-Language': 'es' } }
+      );
+      
+      if (response.data && response.data.length > 0) {
+        const { lat, lon } = response.data[0];
+        setShippingAddress(prev => ({
+          ...prev,
+          lat: parseFloat(lat),
+          lng: parseFloat(lon)
+        }));
+        toast.success('Ubicación encontrada automáticamente');
+        
+        // Auto-calculate shipping
+        setTimeout(() => calculateShippingWithCoords(parseFloat(lat), parseFloat(lon)), 500);
+      } else {
+        toast.error('No se encontró la dirección. Verifica los datos.');
+      }
+    } catch (err) {
+      toast.error('Error al buscar la dirección');
+    } finally {
+      setGeocodingAddress(false);
+    }
+  };
+
+  const calculateShippingWithCoords = async (lat, lng) => {
+    setCalculatingShipping(true);
+    try {
+      const response = await axios.post(`${API}/shipping/calculate`, {
+        address: { ...shippingAddress, lat, lng }
+      });
+      setShippingCost(response.data);
+    } catch (err) {
+      toast.error('Error al calcular envío');
+    } finally {
+      setCalculatingShipping(false);
+    }
+  };
+
   const calculateShipping = async () => {
     if (!shippingAddress.lat || !shippingAddress.lng) {
-      toast.error('Ingresa las coordenadas de tu ubicación');
+      toast.error('Primero busca tu dirección');
       return;
     }
     
@@ -2156,6 +2209,18 @@ const CheckoutPage = () => {
     return true;
   };
 
+  const runTruckAnimation = () => {
+    setButtonText('PROCESANDO...');
+    setTruckPhase('drive-in');
+    
+    setTimeout(() => setTruckPhase('loading'), 700);
+    setTimeout(() => setTruckPhase('drive-out'), 2400);
+    setTimeout(() => {
+      setTruckPhase('done');
+      setButtonText('¡PEDIDO ENVIADO!');
+    }, 3000);
+  };
+
   const handleCheckout = async () => {
     if (cart.items.length === 0) {
       toast.error('Tu carrito está vacío');
@@ -2172,17 +2237,23 @@ const CheckoutPage = () => {
     }
     
     setLoading(true);
+    runTruckAnimation();
+    
     try {
       const response = await axios.post(`${API}/payments/checkout`, {
         origin_url: window.location.origin,
         shipping_address: shippingAddress
       }, { withCredentials: true });
       
-      // Redirect to Stripe
-      window.location.href = response.data.url;
+      // Wait for animation then redirect
+      setTimeout(() => {
+        window.location.href = response.data.url;
+      }, 3500);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Error al procesar el pago');
       setLoading(false);
+      setTruckPhase('idle');
+      setButtonText('FINALIZAR COMPRA');
     }
   };
 
@@ -2190,8 +2261,138 @@ const CheckoutPage = () => {
 
   const total = cart.total + (shippingCost?.shipping_cost || 0);
 
+  // Truck animation styles
+  const truckStyles = `
+    .truck-animation-zone {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .truck {
+      position: absolute;
+      bottom: 5px;
+      left: -140px;
+      width: 110px;
+      height: 70px;
+      transition: left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .truck.drive-in { left: calc(50% - 55px); }
+    .truck.drive-out { 
+      left: 100%; 
+      transform: rotate(-3deg) translateY(-2px); 
+      transition: left 0.5s cubic-bezier(0.6, 0.1, 1, 1), transform 0.3s ease-out; 
+    }
+    .truck.is-moving .wheel-rim { animation: spin 0.3s linear infinite; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    
+    .cargo-inside {
+      position: absolute; left: 2px; bottom: 12px;
+      width: 78px; height: 52px;
+      background: #0a0f14;
+      box-shadow: inset 0px 10px 15px rgba(0,0,0,0.9);
+      border-radius: 4px 0 0 4px;
+    }
+    .cargo-body-fg {
+      position: absolute; left: 8px; bottom: 12px;
+      width: 72px; height: 52px;
+      background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+      box-shadow: 2px -2px 5px rgba(0,0,0,0.2);
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 2px 0 0 2px;
+      overflow: hidden;
+    }
+    .logo-ferre {
+      width: 50px; height: 40px;
+      background-image: url('/logo-ferre.png');
+      background-size: contain; background-repeat: no-repeat; background-position: center;
+      filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.3));
+    }
+    .rear-door {
+      position: absolute; left: 2px; bottom: 12px;
+      width: 6px; height: 52px;
+      background: linear-gradient(to right, #95a5a6, #7f8c8d);
+      border-right: 1px solid #111; border-radius: 4px 0 0 4px;
+      transform-origin: top;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .truck.open .rear-door { transform: scaleY(0); }
+    .cab {
+      position: absolute; left: 80px; bottom: 12px;
+      width: 32px; height: 42px;
+      background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%);
+      border-radius: 0 12px 6px 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+    .window {
+      position: absolute; right: 4px; top: 6px; width: 16px; height: 18px;
+      background: linear-gradient(135deg, #d6eaf8 0%, #aed6f1 100%);
+      border-radius: 0 8px 0 0; border: 1px solid #e67e22;
+    }
+    .headlight {
+      position: absolute; right: 0px; top: 26px; width: 4px; height: 8px;
+      background: #f1c40f; border-radius: 4px 0 0 4px; box-shadow: 0 0 5px #f1c40f;
+    }
+    .taillight {
+      position: absolute; left: 1px; bottom: 16px; width: 3px; height: 10px;
+      background: #e74c3c; box-shadow: 0 0 5px #e74c3c;
+    }
+    .bumper {
+      position: absolute; left: 0; bottom: 8px; width: 112px; height: 5px;
+      background: linear-gradient(to bottom, #333, #111); border-radius: 3px;
+    }
+    .wheel {
+      position: absolute; bottom: 0; width: 24px; height: 24px;
+      background: #1a1a1a; border-radius: 50%;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .wheel.back { left: 14px; }
+    .wheel.front { left: 80px; }
+    .wheel-rim {
+      width: 14px; height: 14px;
+      background: linear-gradient(135deg, #bdc3c7, #7f8c8d);
+      border: 2px solid #333; border-radius: 50%;
+    }
+    .smoke {
+      position: absolute; background: #eee; border-radius: 50%; opacity: 0;
+    }
+    .smoke-1 { width: 28px; height: 28px; bottom: -5px; left: 0px; }
+    .smoke-2 { width: 20px; height: 20px; bottom: 2px; left: -12px; }
+    .truck.drive-out .smoke-1 { animation: puff 0.6s ease-out; }
+    .truck.drive-out .smoke-2 { animation: puff 0.5s 0.1s ease-out; }
+    @keyframes puff { 
+      0% { transform: scale(0.5); opacity: 0.7; } 
+      100% { transform: scale(2.5) translateX(-25px); opacity: 0; } 
+    }
+    .box {
+      position: absolute; bottom: -25px; left: 0px; width: 22px; height: 22px;
+      background: repeating-linear-gradient(45deg, #c0b2a8, #c0b2a8 2px, #d7ccc8 2px, #d7ccc8 4px);
+      border: 1px solid #8d6e63; border-radius: 2px; opacity: 0;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .box.slide-up { animation: enterRear 0.9s forwards ease-in-out; }
+    @keyframes enterRear {
+      0% { transform: translate(0, 0); opacity: 0; }
+      15% { opacity: 1; }
+      45% { transform: translate(0, -46px); opacity: 1; }
+      80% { transform: translate(32px, -46px) scale(0.8); opacity: 1; }
+      100% { transform: translate(42px, -46px) scale(0.6); opacity: 0; }
+    }
+  `;
+
+  const getTruckClasses = () => {
+    let classes = 'truck';
+    if (truckPhase === 'drive-in' || truckPhase === 'loading') classes += ' drive-in is-moving';
+    if (truckPhase === 'loading') classes += ' open';
+    if (truckPhase === 'drive-out' || truckPhase === 'done') classes += ' drive-out is-moving';
+    return classes;
+  };
+
   return (
     <main className="min-h-screen bg-muted" data-testid="checkout-page">
+      <style>{truckStyles}</style>
       <div className="max-w-6xl mx-auto px-4 md:px-8 py-8">
         <h1 className="text-2xl md:text-3xl font-bold mb-8">Finalizar Compra</h1>
         
@@ -2250,52 +2451,29 @@ const CheckoutPage = () => {
                     />
                   </div>
                   
-                  {/* Coordinates for shipping calculation */}
+                  {/* Auto Geocoding Button */}
                   <div className="p-4 bg-muted rounded-sm">
-                    <div className="flex items-start gap-2 mb-3">
-                      <Info className="w-4 h-4 text-blue-500 mt-0.5" />
-                      <p className="text-sm text-muted-foreground">
-                        Para calcular el costo de envío, ingresa las coordenadas de tu ubicación.
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="lat">Latitud</Label>
-                        <Input
-                          id="lat"
-                          type="number"
-                          step="0.0000001"
-                          value={shippingAddress.lat || ''}
-                          onChange={(e) => setShippingAddress(prev => ({ ...prev, lat: parseFloat(e.target.value) || null }))}
-                          placeholder="-12.123456"
-                          className="rounded-sm mt-1"
-                          data-testid="shipping-lat"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="lng">Longitud</Label>
-                        <Input
-                          id="lng"
-                          type="number"
-                          step="0.0000001"
-                          value={shippingAddress.lng || ''}
-                          onChange={(e) => setShippingAddress(prev => ({ ...prev, lng: parseFloat(e.target.value) || null }))}
-                          placeholder="-77.123456"
-                          className="rounded-sm mt-1"
-                          data-testid="shipping-lng"
-                        />
-                      </div>
-                    </div>
                     <Button 
-                      onClick={calculateShipping}
+                      onClick={geocodeAddress}
                       variant="outline"
-                      className="mt-3 rounded-sm"
-                      disabled={calculatingShipping || !shippingAddress.lat || !shippingAddress.lng}
-                      data-testid="calculate-shipping-btn"
+                      className="w-full rounded-sm"
+                      disabled={geocodingAddress || !shippingAddress.street || !shippingAddress.city}
+                      data-testid="geocode-btn"
                     >
-                      {calculatingShipping ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <MapPin className="w-4 h-4 mr-2" />}
-                      Calcular Envío
+                      {geocodingAddress ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <MapPin className="w-4 h-4 mr-2" />
+                      )}
+                      {geocodingAddress ? 'Buscando ubicación...' : 'Buscar mi ubicación y calcular envío'}
                     </Button>
+                    
+                    {shippingAddress.lat && shippingAddress.lng && (
+                      <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+                        <Check className="w-3 h-3" />
+                        Ubicación encontrada: {shippingAddress.lat.toFixed(4)}, {shippingAddress.lng.toFixed(4)}
+                      </p>
+                    )}
                     
                     {shippingCost && (
                       <Alert className={`mt-3 ${shippingCost.is_free ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50'}`}>
@@ -2306,7 +2484,7 @@ const CheckoutPage = () => {
                                 {shippingCost.is_free ? (
                                   <span className="text-green-600">¡Envío Gratis!</span>
                                 ) : (
-                                  <span className="text-blue-600">Costo: ${shippingCost.shipping_cost?.toFixed(2)}</span>
+                                  <span className="text-blue-600">Costo de envío: ${shippingCost.shipping_cost?.toFixed(2)}</span>
                                 )}
                               </p>
                               <p className="text-xs text-muted-foreground">Distancia: {shippingCost.distance_km} km</p>
@@ -2362,8 +2540,8 @@ const CheckoutPage = () => {
               </CardContent>
             </Card>
 
-            {/* Payment Summary */}
-            <Card className="rounded-sm">
+            {/* Payment Summary with Truck Animation */}
+            <Card className="rounded-sm overflow-hidden">
               <CardContent className="p-6">
                 <h2 className="font-bold text-lg mb-4">Resumen de Pago</h2>
                 <div className="space-y-2 mb-6">
@@ -2377,7 +2555,7 @@ const CheckoutPage = () => {
                       {shippingCost ? (
                         shippingCost.is_free ? 'Gratis' : `$${shippingCost.shipping_cost?.toFixed(2)}`
                       ) : (
-                        <span className="text-xs text-muted-foreground">Calcula tu envío</span>
+                        <span className="text-xs text-muted-foreground">Busca tu dirección</span>
                       )}
                     </span>
                   </div>
@@ -2387,17 +2565,68 @@ const CheckoutPage = () => {
                     <span className="text-primary">${total.toFixed(2)}</span>
                   </div>
                 </div>
-                <Button 
-                  onClick={handleCheckout}
-                  disabled={loading || cart.items.length === 0}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-sm font-bold uppercase h-12 text-base"
-                  data-testid="pay-now-btn"
-                >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Lock className="w-5 h-5 mr-2" />}
-                  Pagar ${total.toFixed(2)}
-                </Button>
+                
+                {/* Truck Animation Zone */}
+                <div className="relative w-full">
+                  <div className="truck-animation-zone">
+                    {/* Background truck layer */}
+                    <div className={getTruckClasses()} style={{ zIndex: 10 }}>
+                      <div className="cargo-inside"></div>
+                    </div>
+                    
+                    {/* Box */}
+                    <div className={`box ${truckPhase === 'loading' ? 'slide-up' : ''}`} style={{ zIndex: 20 }}></div>
+                    
+                    {/* Foreground truck layer */}
+                    <div className={getTruckClasses()} style={{ zIndex: 30 }}>
+                      <div className="smoke smoke-1"></div>
+                      <div className="smoke smoke-2"></div>
+                      <div className="bumper"></div>
+                      <div className="cargo-body-fg">
+                        <div className="logo-ferre"></div>
+                      </div>
+                      <div className="rear-door"></div>
+                      <div className="taillight"></div>
+                      <div className="cab">
+                        <div className="window"></div>
+                        <div className="headlight"></div>
+                      </div>
+                      <div className="wheel back"><div className="wheel-rim"></div></div>
+                      <div className="wheel front"><div className="wheel-rim"></div></div>
+                    </div>
+                  </div>
+                  
+                  {/* Pay Button */}
+                  <button
+                    onClick={handleCheckout}
+                    disabled={loading || cart.items.length === 0}
+                    className={`w-full py-4 text-white border-none rounded-xl font-bold text-base cursor-pointer transition-all duration-300 ${
+                      truckPhase === 'done' 
+                        ? 'bg-gradient-to-r from-green-600 to-green-500' 
+                        : 'bg-gradient-to-r from-gray-800 to-gray-600 hover:shadow-lg hover:-translate-y-1'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    style={{
+                      boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
+                      borderTop: '1px solid rgba(255,255,255,0.1)'
+                    }}
+                    data-testid="pay-now-btn"
+                  >
+                    {buttonText}
+                  </button>
+                </div>
+                
                 <div className="flex items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
                   <Lock className="w-3 h-3" />
+                  <span>Pago 100% seguro con encriptación SSL</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+};
                   <span>Pago 100% seguro con encriptación SSL</span>
                 </div>
               </CardContent>
