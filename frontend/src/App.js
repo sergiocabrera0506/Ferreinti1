@@ -2273,16 +2273,16 @@ const CheckoutPage = () => {
     .truck {
       position: absolute;
       bottom: 5px;
-      left: -140px;
+      right: -140px;
       width: 110px;
       height: 70px;
-      transition: left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition: right 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform: scaleX(-1);
     }
-    .truck.drive-in { left: calc(50% - 55px); }
+    .truck.drive-in { right: calc(50% - 55px); }
     .truck.drive-out { 
-      left: 100%; 
-      transform: rotate(-3deg) translateY(-2px); 
-      transition: left 0.5s cubic-bezier(0.6, 0.1, 1, 1), transform 0.3s ease-out; 
+      right: -140px; 
+      transition: right 0.5s cubic-bezier(0.6, 0.1, 1, 1); 
     }
     .truck.is-moving .wheel-rim { animation: spin 0.3s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
