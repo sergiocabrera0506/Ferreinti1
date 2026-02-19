@@ -939,60 +939,73 @@ const HomePage = () => {
 
   return (
     <main className="min-h-screen" data-testid="home-page">
-      {/* Hero Banner */}
-      <section className="relative bg-secondary overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-            {/* Main Banner */}
-            <div className="lg:col-span-2 lg:row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer shadow-2xl" onClick={() => navigate('/categoria/herramientas-electricas')}>
-              <img 
-                src="https://images.unsplash.com/photo-1540103711724-ebf833bde8d1?w=1200&q=80"
-                alt="Herramientas Profesionales"
-                className="w-full h-64 md:h-96 lg:h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                <Badge className="badge-offer mb-4 px-4 py-1.5 rounded-full text-sm">HASTA 30% OFF</Badge>
-                <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 drop-shadow-lg">
-                  Herramientas<br />Profesionales
-                </h1>
-                <p className="text-white/90 text-sm md:text-base mb-5 max-w-md">
-                  Encuentra las mejores herramientas eléctricas y manuales para tu trabajo
-                </p>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold uppercase px-6 py-3 shadow-lg shadow-primary/40 hover:shadow-xl hover:shadow-primary/50 transition-all hover:scale-105" data-testid="hero-cta-btn">
-                  Ver Ofertas <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+      {/* ============================================================
+          CARRUSEL DE BANNERS DINÁMICO
+          
+          Los banners se cargan desde el panel de administración.
+          Si no hay banners configurados, se muestra el banner estático de respaldo.
+          
+          Para modificar la altura del carrusel, edita BANNER_HEIGHT_CLASSES
+          en el archivo: /src/components/BannerCarousel.jsx
+          ============================================================ */}
+      {banners.length > 0 ? (
+        <BannerCarousel banners={banners} />
+      ) : (
+        /* Banner estático de respaldo (se muestra si no hay banners configurados) */
+        <section className="relative bg-secondary overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+              {/* Main Banner */}
+              <div className="lg:col-span-2 lg:row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer shadow-2xl" onClick={() => navigate('/categoria/herramientas-electricas')}>
+                <img 
+                  src="https://images.unsplash.com/photo-1540103711724-ebf833bde8d1?w=1200&q=80"
+                  alt="Herramientas Profesionales"
+                  className="w-full h-64 md:h-96 lg:h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                  <Badge className="badge-offer mb-4 px-4 py-1.5 rounded-full text-sm">HASTA 30% OFF</Badge>
+                  <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 drop-shadow-lg">
+                    Herramientas<br />Profesionales
+                  </h1>
+                  <p className="text-white/90 text-sm md:text-base mb-5 max-w-md">
+                    Encuentra las mejores herramientas eléctricas y manuales para tu trabajo
+                  </p>
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold uppercase px-6 py-3 shadow-lg shadow-primary/40 hover:shadow-xl hover:shadow-primary/50 transition-all hover:scale-105" data-testid="hero-cta-btn">
+                    Ver Ofertas <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
               </div>
-            </div>
-            
-            {/* Side banners */}
-            <div className="relative rounded-2xl overflow-hidden group cursor-pointer shadow-xl hover:shadow-2xl transition-shadow" onClick={() => navigate('/categoria/accesorios-bano')}>
-              <img 
-                src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&q=80"
-                alt="Accesorios Baño"
-                className="w-full h-44 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <h3 className="text-xl font-bold text-white drop-shadow">Accesorios Baño</h3>
-                <p className="text-white/80 text-sm">Renueva tu baño</p>
+              
+              {/* Side banners */}
+              <div className="relative rounded-2xl overflow-hidden group cursor-pointer shadow-xl hover:shadow-2xl transition-shadow" onClick={() => navigate('/categoria/accesorios-bano')}>
+                <img 
+                  src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&q=80"
+                  alt="Accesorios Baño"
+                  className="w-full h-44 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <h3 className="text-xl font-bold text-white drop-shadow">Accesorios Baño</h3>
+                  <p className="text-white/80 text-sm">Renueva tu baño</p>
+                </div>
               </div>
-            </div>
-            <div className="relative rounded-2xl overflow-hidden group cursor-pointer shadow-xl hover:shadow-2xl transition-shadow" onClick={() => navigate('/categoria/conexiones-electricas')}>
-              <img 
-                src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
-                alt="Conexiones Eléctricas"
-                className="w-full h-44 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <h3 className="text-xl font-bold text-white drop-shadow">Conexiones Eléctricas</h3>
-                <p className="text-white/80 text-sm">Material certificado</p>
+              <div className="relative rounded-2xl overflow-hidden group cursor-pointer shadow-xl hover:shadow-2xl transition-shadow" onClick={() => navigate('/categoria/conexiones-electricas')}>
+                <img 
+                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80"
+                  alt="Conexiones Eléctricas"
+                  className="w-full h-44 object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <h3 className="text-xl font-bold text-white drop-shadow">Conexiones Eléctricas</h3>
+                  <p className="text-white/80 text-sm">Material certificado</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Categories Carousel */}
       <section className="py-10 md:py-16 bg-background">
