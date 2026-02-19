@@ -585,11 +585,12 @@ const Navbar = () => {
       <div className="w-full px-4 md:px-8 lg:px-12">
         {/* Top bar */}
         <div className="flex items-center justify-between h-16 md:h-20">
-          <Link to="/" className="flex items-center gap-3 group" data-testid="logo-link">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-all group-hover:scale-105">
-              <Wrench className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl md:text-2xl font-extrabold tracking-tight">FERRE INTI</span>
+          <Link to="/" className="flex items-center gap-2 group" data-testid="logo-link">
+            <img 
+              src="/logo-main.png" 
+              alt="INTI FERRE" 
+              className="h-14 md:h-16 w-auto object-contain group-hover:scale-105 transition-transform"
+            />
           </Link>
 
           {/* Search - Desktop */}
