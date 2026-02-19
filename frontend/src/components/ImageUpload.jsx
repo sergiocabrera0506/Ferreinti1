@@ -97,6 +97,9 @@ export const ImageUpload = ({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
   const [dragActive, setDragActive] = useState(false);
+  
+  // ID único para este componente
+  const inputId = React.useId();
 
   // Sensores para drag and drop
   const sensors = useSensors(
