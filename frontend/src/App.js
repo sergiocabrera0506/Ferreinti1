@@ -2282,14 +2282,14 @@ const CheckoutPage = () => {
       transition: left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
     .truck.drive-in { left: calc(50% - 55px); }
-    .truck.drive-out { 
-      left: 100%; 
-      transform: rotate(-3deg) translateY(-2px); 
-      transition: left 0.5s cubic-bezier(0.6, 0.1, 1, 1), transform 0.3s ease-out; 
+    .truck.drive-out {
+      left: 100%;
+      transform: rotate(-3deg) translateY(-2px);
+      transition: left 0.5s cubic-bezier(0.6, 0.1, 1, 1), transform 0.3s ease-out;
     }
     .truck.is-moving .wheel-rim { animation: spin 0.3s linear infinite; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
-    
+
     .cargo-inside {
       position: absolute; left: 2px; bottom: 12px;
       width: 78px; height: 52px;
@@ -2300,17 +2300,19 @@ const CheckoutPage = () => {
     .cargo-body-fg {
       position: absolute; left: 8px; bottom: 12px;
       width: 72px; height: 52px;
-      background: linear-gradient(180deg, #f5a623 0%, #e8950a 100%);
-      box-shadow: 2px -2px 5px rgba(0,0,0,0.2);
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 18px),
+        linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+      box-shadow: 2px -2px 5px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
       display: flex; align-items: center; justify-content: center;
       border-radius: 2px 0 0 2px;
       overflow: hidden;
     }
     .logo-ferre {
-      width: 45px; height: 45px;
+      width: 50px; height: 40px;
       background-image: url('/logo-ferre.png');
       background-size: contain; background-repeat: no-repeat; background-position: center;
-      filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.4));
+      z-index: 5; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.3));
     }
     .rear-door {
       position: absolute; left: 2px; bottom: 12px;
@@ -2320,18 +2322,30 @@ const CheckoutPage = () => {
       transform-origin: top;
       transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    .rear-door::after {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: repeating-linear-gradient(transparent, transparent 4px, rgba(0,0,0,0.4) 4px, rgba(0,0,0,0.4) 5px);
+    }
     .truck.open .rear-door { transform: scaleY(0); }
     .cab {
       position: absolute; left: 80px; bottom: 12px;
       width: 32px; height: 42px;
-      background: linear-gradient(180deg, #f5a623 0%, #e8950a 100%);
+      background: linear-gradient(180deg, #3498db 0%, #2980b9 100%);
       border-radius: 0 12px 6px 0;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
     }
     .window {
       position: absolute; right: 4px; top: 6px; width: 16px; height: 18px;
       background: linear-gradient(135deg, #d6eaf8 0%, #aed6f1 100%);
-      border-radius: 0 8px 0 0; border: 1px solid #e8950a;
+      border-radius: 0 8px 0 0; border: 1px solid #3498db;
+    }
+    .mirror {
+      position: absolute; right: -4px; top: 12px;
+      width: 4px; height: 8px; background: #2c3e50; border-radius: 0 4px 4px 0;
+    }
+    .grille {
+      position: absolute; right: 2px; bottom: 4px; width: 10px; height: 8px;
+      background: repeating-linear-gradient(to bottom, #222, #222 2px, #444 2px, #444 3px); border-radius: 2px;
     }
     .headlight {
       position: absolute; right: 0px; top: 26px; width: 4px; height: 8px;
@@ -2345,6 +2359,11 @@ const CheckoutPage = () => {
       position: absolute; left: 0; bottom: 8px; width: 112px; height: 5px;
       background: linear-gradient(to bottom, #333, #111); border-radius: 3px;
     }
+    .truck-shadow {
+      position: absolute; left: 5px; bottom: 4px; width: 105px; height: 8px;
+      background: rgba(0,0,0,0.2); border-radius: 50%; filter: blur(4px);
+      opacity: 0; transition: opacity 0.3s;
+    }
     .wheel {
       position: absolute; bottom: 0; width: 24px; height: 24px;
       background: #1a1a1a; border-radius: 50%;
@@ -2356,31 +2375,45 @@ const CheckoutPage = () => {
     .wheel-rim {
       width: 14px; height: 14px;
       background: linear-gradient(135deg, #bdc3c7, #7f8c8d);
-      border: 2px solid #333; border-radius: 50%;
+      border: 2px solid #333; border-radius: 50%; position: relative;
+    }
+    .wheel-rim::after {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      width: 12px; height: 2px; background: #333; transform: translate(-50%, -50%);
+    }
+    .wheel-rim::before {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      width: 2px; height: 12px; background: #333; transform: translate(-50%, -50%);
     }
     .smoke {
-      position: absolute; background: #eee; border-radius: 50%; opacity: 0;
+      position: absolute; background: #eee; border-radius: 50%; opacity: 0; z-index: 5;
     }
     .smoke-1 { width: 28px; height: 28px; bottom: -5px; left: 0px; }
     .smoke-2 { width: 20px; height: 20px; bottom: 2px; left: -12px; }
+    .speed-line { position: absolute; background: #bbb; height: 2px; border-radius: 2px; opacity: 0; }
+    .sl-1 { top: 25px; left: -25px; width: 50px; }
+    .sl-2 { top: 50px; left: -40px; width: 30px; }
     .truck.drive-out .smoke-1 { animation: puff 0.6s ease-out; }
     .truck.drive-out .smoke-2 { animation: puff 0.5s 0.1s ease-out; }
-    @keyframes puff { 
-      0% { transform: scale(0.5); opacity: 0.7; } 
-      100% { transform: scale(2.5) translateX(-25px); opacity: 0; } 
+    @keyframes puff {
+      0% { transform: scale(0.5); opacity: 0.7; }
+      100% { transform: scale(2.5) translateX(-25px); opacity: 0; }
     }
+    .truck.drive-out .speed-line { animation: wind 0.3s linear infinite; }
+    @keyframes wind { 0% { transform: translateX(20px); opacity: 1; } 100% { transform: translateX(-50px); opacity: 0; } }
     .box {
-      position: absolute; bottom: -25px; left: 0px; width: 26px; height: 26px;
-      background: #f5a623;
-      border: 2px solid #e8950a; border-radius: 3px; opacity: 0;
+      position: absolute; bottom: -25px; left: 0px; width: 22px; height: 22px;
+      background: repeating-linear-gradient(45deg, #c0b2a8, #c0b2a8 2px, #d7ccc8 2px, #d7ccc8 4px);
+      border: 1px solid #8d6e63; border-radius: 2px; box-sizing: border-box; opacity: 0;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      display: flex; align-items: center; justify-content: center;
     }
     .box::before {
-      content: '';
-      width: 18px; height: 18px;
-      background-image: url('/logo-ferre.png');
-      background-size: contain; background-repeat: no-repeat; background-position: center;
+      content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 3px;
+      background: #a1887f; margin-top: -1.5px; opacity: 0.8;
+    }
+    .box::after {
+      content: ''; position: absolute; top: 3px; left: 3px; width: 7px; height: 5px;
+      background: #fff; border: 1px solid #eee;
     }
     .box.slide-up { animation: enterRear 0.9s forwards ease-in-out; }
     @keyframes enterRear {
