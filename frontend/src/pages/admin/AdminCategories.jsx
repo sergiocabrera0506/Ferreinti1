@@ -24,7 +24,26 @@ import ImageUpload from '../../components/ImageUpload';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const iconOptions = ['Wrench', 'Zap', 'Cable', 'Droplets', 'ChefHat', 'Circle', 'Hammer', 'Lightbulb', 'Settings'];
+const iconOptions = [
+  { value: 'Wrench', label: 'Llave/Herramienta' },
+  { value: 'Hammer', label: 'Martillo' },
+  { value: 'Zap', label: 'Electricidad/Rayo' },
+  { value: 'Lightbulb', label: 'Bombilla/Iluminación' },
+  { value: 'Cable', label: 'Cable/Conexiones' },
+  { value: 'Droplets', label: 'Agua/Plomería' },
+  { value: 'ChefHat', label: 'Cocina' },
+  { value: 'Settings', label: 'Configuración/Engranaje' },
+  { value: 'Circle', label: 'Círculo/General' },
+  { value: 'PaintBucket', label: 'Pintura' },
+  { value: 'Lock', label: 'Cerrajería/Seguridad' },
+  { value: 'Ruler', label: 'Medición' },
+  { value: 'Drill', label: 'Taladro' },
+  { value: 'Scissors', label: 'Tijeras/Corte' },
+  { value: 'Plug', label: 'Enchufe' },
+  { value: 'Thermometer', label: 'Temperatura' },
+  { value: 'Home', label: 'Hogar' },
+  { value: 'Truck', label: 'Transporte' },
+];
 
 const emptyCategory = {
   name: '',
