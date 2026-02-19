@@ -315,7 +315,13 @@ export const ImageUpload = ({
               {uploading ? 'Subiendo imágenes...' : 'Arrastra imágenes aquí'}
             </p>
             <p className="text-sm text-muted-foreground">
-              o haz clic para seleccionar (WebP, JPG, PNG - máx 10MB)
+              {multiple 
+                ? `Haz clic para seleccionar varias (máx ${maxFiles - existingImages.length} más)`
+                : 'Haz clic para seleccionar una imagen'
+              }
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              WebP, JPG, PNG - máx 10MB cada una
             </p>
           </div>
         </div>
