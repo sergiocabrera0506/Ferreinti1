@@ -2093,7 +2093,7 @@ const CreditCardInput = ({ cardData, setCardData, isFlipped, setIsFlipped }) => 
 
 const CheckoutPage = () => {
   const { cart } = useCart();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [shippingAddress, setShippingAddress] = useState({
@@ -2122,8 +2122,8 @@ const CheckoutPage = () => {
   const [buttonText, setButtonText] = useState('FINALIZAR COMPRA');
 
   useEffect(() => {
-    if (!user) navigate('/auth');
-  }, [user, navigate]);
+    if (!authLoading && !user) navigate('/auth');
+  }, [user, authLoading, navigate]);
 
   // Auto-geocode when address changes
   const geocodeAddress = async () => {
