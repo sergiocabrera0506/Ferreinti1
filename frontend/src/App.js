@@ -896,6 +896,7 @@ const HomePage = () => {
   const [offers, setOffers] = useState([]);
   const [bestsellers, setBestsellers] = useState([]);
   const [newProducts, setNewProducts] = useState([]);
+  const [banners, setBanners] = useState([]); // Banners del carrusel
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -906,16 +907,18 @@ const HomePage = () => {
         // Seed data first
         await axios.post(`${API}/seed`).catch(() => {});
         
-        const [catRes, offersRes, bestRes, newRes] = await Promise.all([
+        const [catRes, offersRes, bestRes, newRes, bannersRes] = await Promise.all([
           axios.get(`${API}/categories`),
           axios.get(`${API}/products?is_offer=true&limit=8`),
           axios.get(`${API}/products?is_bestseller=true&limit=8`),
           axios.get(`${API}/products?is_new=true&limit=8`),
+          axios.get(`${API}/banners`).catch(() => ({ data: [] })), // Cargar banners
         ]);
         setCategories(catRes.data);
         setOffers(offersRes.data);
         setBestsellers(bestRes.data);
         setNewProducts(newRes.data);
+        setBanners(bannersRes.data || []);
       } catch (err) {
         console.error(err);
       } finally {
