@@ -969,6 +969,68 @@ async def get_cloudinary_config():
         }
     }
 
+@api_router.post("/admin/convert-images-to-webp")
+async def convert_existing_images_to_webp(user: User = Depends(require_admin)):
+    """Convertir todas las URLs de imágenes existentes para usar formato WebP optimizado"""
+    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME")
+    if not cloud_name:
+        raise HTTPException(status_code=500, detail="Cloudinary no configurado")
+    
+    updated_products = 0
+    updated_categories = 0
+    
+    # Función para optimizar URL de Cloudinary
+    def optimize_cloudinary_url(url):
+        if not url or not isinstance(url, str):
+            return url
+        
+        # Si ya tiene f_auto,q_auto, no cambiar
+        if 'f_auto,q_auto' in url or 'f_webp' in url:
+            return url
+            
+        # Si es URL de Cloudinary, agregar transformación
+        if 'res.cloudinary.com' in url and '/upload/' in url:
+            # Insertar f_auto,q_auto después de /upload/
+            return url.replace('/upload/', '/upload/f_auto,q_auto/')
+        
+        # Si es URL de Cloudinary con versión (v1234567890)
+        if 'res.cloudinary.com' in url:
+            import re
+            # Buscar patrón /upload/v[números]/
+            pattern = r'(/upload/)(v\d+/)'
+            if re.search(pattern, url):
+                return re.sub(pattern, r'\1f_auto,q_auto/\2', url)
+        
+        return url
+    
+    # Actualizar productos
+    products = list(products_collection.find({"images": {"$exists": True, "$ne": []}}))
+    for product in products:
+        updated_images = [optimize_cloudinary_url(img) for img in product.get("images", [])]
+        if updated_images != product.get("images", []):
+            products_collection.update_one(
+                {"_id": product["_id"]},
+                {"$set": {"images": updated_images}}
+            )
+            updated_products += 1
+    
+    # Actualizar categorías
+    categories = list(categories_collection.find({"image": {"$exists": True, "$ne": ""}}))
+    for category in categories:
+        updated_image = optimize_cloudinary_url(category.get("image", ""))
+        if updated_image != category.get("image", ""):
+            categories_collection.update_one(
+                {"_id": category["_id"]},
+                {"$set": {"image": updated_image}}
+            )
+            updated_categories += 1
+    
+    return {
+        "message": "Conversión completada",
+        "updated_products": updated_products,
+        "updated_categories": updated_categories
+    }
+
 # ==================== ADMIN ROUTES ====================
 
 # Dashboard Stats
