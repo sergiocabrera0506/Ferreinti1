@@ -799,10 +799,11 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-primary rounded-sm flex items-center justify-center">
-                <Wrench className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-extrabold tracking-tight">FERRE INTI</span>
+              <img 
+                src="/logo-main.png" 
+                alt="INTI FERRE" 
+                className="h-16 w-auto object-contain"
+              />
             </div>
             <p className="text-sm text-secondary-foreground/70 mb-4">
               Tu ferretería de confianza con las mejores herramientas y accesorios para el hogar y el trabajo profesional.
