@@ -178,7 +178,9 @@ export const AdminCategories = () => {
             </div>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Icono: {category.icon}</span>
+                <span className="text-sm text-muted-foreground">
+                  Icono: {iconOptions.find(i => i.value === category.icon)?.label || category.icon}
+                </span>
                 <div className="flex gap-2">
                   <Button 
                     variant="ghost" 
