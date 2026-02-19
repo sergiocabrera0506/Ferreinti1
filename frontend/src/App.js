@@ -1726,10 +1726,11 @@ const AuthPage = () => {
       <Card className="w-full max-w-md rounded-2xl shadow-xl border-0">
         <CardContent className="p-6 md:p-8">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
-              <Wrench className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-bold">FERRE INTI</h1>
+            <img 
+              src="/logo-main.png" 
+              alt="INTI FERRE" 
+              className="h-20 w-auto object-contain mx-auto mb-4"
+            />
             <p className="text-muted-foreground text-sm mt-1">
               {mode === 'login' ? 'Inicia sesión en tu cuenta' : 'Crea una cuenta nueva'}
             </p>
