@@ -1,0 +1,151 @@
+{
+  "test_summary": {
+    "total_tests": 20,
+    "passed_tests": 19,
+    "failed_tests": 1,
+    "success_rate": 95.0,
+    "timestamp": "2026-02-19T04:58:13.569041"
+  },
+  "detailed_results": [
+    {
+      "test_name": "Seed Initial Data",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:12.783662"
+    },
+    {
+      "test_name": "Categories Public Access",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:12.853625"
+    },
+    {
+      "test_name": "Products Public Access",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:12.902172"
+    },
+    {
+      "test_name": "Shipping Config Public",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:12.957417"
+    },
+    {
+      "test_name": "Get Categories",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.005806"
+    },
+    {
+      "test_name": "Categories Count",
+      "success": true,
+      "status_code": 200,
+      "details": "Found 6 categories",
+      "timestamp": "2026-02-19T04:58:13.005832"
+    },
+    {
+      "test_name": "Get Category by Slug",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.058665"
+    },
+    {
+      "test_name": "Get Products",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.110570"
+    },
+    {
+      "test_name": "Products Count",
+      "success": true,
+      "status_code": 200,
+      "details": "Found 7 products",
+      "timestamp": "2026-02-19T04:58:13.110594"
+    },
+    {
+      "test_name": "Get Product by ID",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.163552"
+    },
+    {
+      "test_name": "Register Admin User",
+      "success": false,
+      "status_code": 400,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.213744"
+    },
+    {
+      "test_name": "Admin Login",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.268955"
+    },
+    {
+      "test_name": "Admin Token Obtained",
+      "success": true,
+      "status_code": 200,
+      "details": "Session established",
+      "timestamp": "2026-02-19T04:58:13.268993"
+    },
+    {
+      "test_name": "Get Current User",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.326689"
+    },
+    {
+      "test_name": "Admin Role Verified",
+      "success": true,
+      "status_code": 200,
+      "details": "User has admin role",
+      "timestamp": "2026-02-19T04:58:13.326716"
+    },
+    {
+      "test_name": "Admin Dashboard Stats",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.399165"
+    },
+    {
+      "test_name": "Dashboard Data Complete",
+      "success": true,
+      "status_code": 200,
+      "details": "Products: 7, Users: 1",
+      "timestamp": "2026-02-19T04:58:13.399191"
+    },
+    {
+      "test_name": "Admin Get Products",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.453828"
+    },
+    {
+      "test_name": "Admin Create Product",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.512750"
+    },
+    {
+      "test_name": "Get Cart",
+      "success": true,
+      "status_code": 200,
+      "details": "Expected: 200",
+      "timestamp": "2026-02-19T04:58:13.568978"
+    }
+  ]
+}
