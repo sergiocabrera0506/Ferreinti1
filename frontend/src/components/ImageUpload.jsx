@@ -91,11 +91,38 @@ export const ImageUpload = ({
   multiple = false,
   maxFiles = 5,
   existingImages = [],
-  onRemoveImage
+  onRemoveImage,
+  onReorderImages
 }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({});
   const [dragActive, setDragActive] = useState(false);
+
+  // Sensores para drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id && onReorderImages) {
+      const oldIndex = existingImages.findIndex((_, idx) => `image-${idx}` === active.id);
+      const newIndex = existingImages.findIndex((_, idx) => `image-${idx}` === over.id);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(existingImages, oldIndex, newIndex);
+        onReorderImages(newOrder);
+      }
+    }
+  };
 
   const uploadToCloudinary = async (file) => {
     try {
