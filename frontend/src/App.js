@@ -30,6 +30,7 @@ import {
   AdminOrders, AdminUsers, AdminShipping, AdminBanners 
 } from './pages/admin';
 import BannerCarousel from './components/BannerCarousel'; // Carrusel de banners para el inicio
+import HorizontalCarousel from './components/HorizontalCarousel'; // Carrusel horizontal con flechas
 import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
