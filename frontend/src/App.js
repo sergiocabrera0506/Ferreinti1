@@ -2321,14 +2321,14 @@ const CheckoutPage = () => {
     .cab {
       position: absolute; left: 80px; bottom: 12px;
       width: 32px; height: 42px;
-      background: linear-gradient(180deg, #f39c12 0%, #e67e22 100%);
+      background: linear-gradient(180deg, #f5a623 0%, #e8950a 100%);
       border-radius: 0 12px 6px 0;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
     }
     .window {
       position: absolute; right: 4px; top: 6px; width: 16px; height: 18px;
       background: linear-gradient(135deg, #d6eaf8 0%, #aed6f1 100%);
-      border-radius: 0 8px 0 0; border: 1px solid #e67e22;
+      border-radius: 0 8px 0 0; border: 1px solid #e8950a;
     }
     .headlight {
       position: absolute; right: 0px; top: 26px; width: 4px; height: 8px;
