@@ -2367,10 +2367,17 @@ const CheckoutPage = () => {
       100% { transform: scale(2.5) translateX(-25px); opacity: 0; } 
     }
     .box {
-      position: absolute; bottom: -25px; left: 0px; width: 22px; height: 22px;
-      background: repeating-linear-gradient(45deg, #c0b2a8, #c0b2a8 2px, #d7ccc8 2px, #d7ccc8 4px);
-      border: 1px solid #8d6e63; border-radius: 2px; opacity: 0;
+      position: absolute; bottom: -25px; left: 0px; width: 26px; height: 26px;
+      background: #f59f18;
+      border: 2px solid #d4850d; border-radius: 3px; opacity: 0;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .box::before {
+      content: '';
+      width: 18px; height: 18px;
+      background-image: url('/logo-ferre.png');
+      background-size: contain; background-repeat: no-repeat; background-position: center;
     }
     .box.slide-up { animation: enterRear 0.9s forwards ease-in-out; }
     @keyframes enterRear {
