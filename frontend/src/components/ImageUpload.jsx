@@ -1,7 +1,86 @@
 import React, { useState, useCallback } from 'react';
-import { Upload, X, Loader2, Image as ImageIcon, Check } from 'lucide-react';
+import { Upload, X, Loader2, Image as ImageIcon, Check, GripVertical } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Componente para cada imagen arrastrable
+const SortableImage = ({ id, img, index, onRemove }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 'auto',
+    opacity: isDragging ? 0.8 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative aspect-square group rounded-lg overflow-hidden border ${isDragging ? 'ring-2 ring-primary shadow-lg' : ''}`}
+      data-testid={`uploaded-image-${index}`}
+    >
+      {/* Drag handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-1 left-1 w-6 h-6 bg-black/60 text-white rounded flex items-center justify-center cursor-grab active:cursor-grabbing z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <GripVertical className="w-4 h-4" />
+      </div>
+      
+      <img
+        src={typeof img === 'string' ? img : img.url}
+        alt={`Imagen ${index + 1}`}
+        className="w-full h-full object-cover pointer-events-none"
+      />
+      
+      {onRemove && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(index);
+          }}
+          className="absolute top-1 right-1 w-6 h-6 bg-destructive text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          data-testid={`remove-image-${index}`}
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+      
+      {index === 0 && (
+        <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/70 text-white text-xs rounded">
+          Principal
+        </span>
+      )}
+    </div>
+  );
+};
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
