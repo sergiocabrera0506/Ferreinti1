@@ -3036,6 +3036,7 @@ const AppRouter = () => {
         <Route index element={<AdminDashboard />} />
         <Route path="productos" element={<AdminProducts />} />
         <Route path="categorias" element={<AdminCategories />} />
+        <Route path="banners" element={<AdminBanners />} />
         <Route path="pedidos" element={<AdminOrders />} />
         <Route path="usuarios" element={<AdminUsers />} />
         <Route path="envios" element={<AdminShipping />} />
