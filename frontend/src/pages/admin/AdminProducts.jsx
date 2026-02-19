@@ -715,6 +715,12 @@ export const AdminProducts = () => {
                           images: prev.images.filter((_, i) => i !== index)
                         }));
                       }}
+                      onReorderImages={(newOrder) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          images: newOrder
+                        }));
+                      }}
                     />
                   </TabsContent>
                   
