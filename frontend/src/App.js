@@ -2367,7 +2367,7 @@ const CheckoutPage = () => {
       100% { transform: scale(2.5) translateX(-25px); opacity: 0; } 
     }
     .box {
-      position: absolute; bottom: -25px; right: 0px; width: 26px; height: 26px;
+      position: absolute; bottom: -25px; left: 0px; width: 26px; height: 26px;
       background: #f59f18;
       border: 2px solid #d4850d; border-radius: 3px; opacity: 0;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
@@ -2384,8 +2384,8 @@ const CheckoutPage = () => {
       0% { transform: translate(0, 0); opacity: 0; }
       15% { opacity: 1; }
       45% { transform: translate(0, -46px); opacity: 1; }
-      80% { transform: translate(-32px, -46px) scale(0.8); opacity: 1; }
-      100% { transform: translate(-42px, -46px) scale(0.6); opacity: 0; }
+      80% { transform: translate(32px, -46px) scale(0.8); opacity: 1; }
+      100% { transform: translate(42px, -46px) scale(0.6); opacity: 0; }
     }
   `;
 
