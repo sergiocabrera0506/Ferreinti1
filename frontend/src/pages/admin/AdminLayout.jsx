@@ -18,6 +18,7 @@ const navItems = [
   { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
   { path: '/admin/productos', icon: Package, label: 'Productos' },
   { path: '/admin/categorias', icon: FolderOpen, label: 'Categorías' },
+  { path: '/admin/banners', icon: Image, label: 'Banners' },
   { path: '/admin/pedidos', icon: ShoppingBag, label: 'Pedidos' },
   { path: '/admin/usuarios', icon: Users, label: 'Usuarios' },
   { path: '/admin/envios', icon: Truck, label: 'Configurar Envíos' },
