@@ -1004,22 +1004,22 @@ async def convert_existing_images_to_webp(user: User = Depends(require_admin)):
         return url
     
     # Actualizar productos
-    products = list(products_collection.find({"images": {"$exists": True, "$ne": []}}))
+    products = await db.products.find({"images": {"$exists": True, "$ne": []}}).to_list(1000)
     for product in products:
         updated_images = [optimize_cloudinary_url(img) for img in product.get("images", [])]
         if updated_images != product.get("images", []):
-            products_collection.update_one(
+            await db.products.update_one(
                 {"_id": product["_id"]},
                 {"$set": {"images": updated_images}}
             )
             updated_products += 1
     
     # Actualizar categorías
-    categories = list(categories_collection.find({"image": {"$exists": True, "$ne": ""}}))
+    categories = await db.categories.find({"image": {"$exists": True, "$ne": ""}}).to_list(100)
     for category in categories:
         updated_image = optimize_cloudinary_url(category.get("image", ""))
         if updated_image != category.get("image", ""):
-            categories_collection.update_one(
+            await db.categories.update_one(
                 {"_id": category["_id"]},
                 {"$set": {"image": updated_image}}
             )
