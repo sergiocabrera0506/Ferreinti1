@@ -2627,16 +2627,6 @@ const CheckoutPage = () => {
     </main>
   );
 };
-                  <span>Pago 100% seguro con encriptación SSL</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
-};
 
 const CheckoutSuccessPage = () => {
   const [searchParams] = useSearchParams();
