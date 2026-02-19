@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 class FerreIntiAPITester:
-    def __init__(self, base_url: str = "https://tools-catalog-1.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://shop-cart-flow.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_base = f"{base_url}/api"
         self.session_token = None
@@ -354,7 +354,7 @@ class FerreIntiAPITester:
 def main():
     """Main test execution"""
     print("FERRE INTI - Hardware Store Backend API Test Suite")
-    print(f"Backend URL: https://tools-catalog-1.preview.emergentagent.com")
+    print(f"Backend URL: https://shop-cart-flow.preview.emergentagent.com")
     print(f"Test started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     tester = FerreIntiAPITester()
