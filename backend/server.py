@@ -776,6 +776,8 @@ async def create_order(order_data: OrderCreate, user: User = Depends(require_aut
 import stripe
 
 stripe.api_key = STRIPE_API_KEY
+if "sk_test_emergent" in STRIPE_API_KEY:
+    stripe.api_base = "https://integrations.emergentagent.com/stripe"
 
 @api_router.post("/payments/checkout")
 async def create_checkout(checkout_data: CheckoutRequest, request: Request, user: User = Depends(require_auth)):
